@@ -31,6 +31,7 @@ export interface HccGap {
   evidence: string;
   icd10: string;
   confidence: number;
+  recommendation?: string | null;
 }
 
 export interface Section {

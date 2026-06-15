@@ -32,10 +32,17 @@ _SEX_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
     (re.compile(r"\b(male|female)\b", re.I), ""),
     (re.compile(r"\b(man|woman|boy|girl)\b", re.I), ""),
 )
+_ICD_CATEGORY = re.compile(r"^([A-Z]\d{2})")
 
 
 def _normalize_icd10(code: str) -> str:
     return code.strip().upper().replace(" ", "")
+
+
+def _icd_category(code: str) -> str:
+    normalized = _normalize_icd10(code).replace(".", "")
+    match = _ICD_CATEGORY.match(normalized)
+    return match.group(1) if match else normalized[:3]
 
 
 def _sex_token_to_mf(token: str) -> str:
@@ -93,12 +100,19 @@ def _demographics_dict(age: int, sex: str) -> dict[str, int | str]:
     return {"age": age, "sex": sex}
 
 
+def _hierarchy_children(hcc: str) -> set[str]:
+    engine = _get_hcc_engine()
+    key = (str(hcc), engine.model_name)
+    children = engine.hierarchies_mapping.get(key, set())
+    return {str(c) for c in children}
+
+
 def calculate_raf(
     icd10_codes: list[str],
     age: int,
     sex: str,
-) -> tuple[float, list[str], dict[str, Any]]:
-    """Return (risk_score, final_hcc_list, full RAFResult as dict-like fields)."""
+) -> tuple[float, list[str], Any]:
+    """Return (risk_score, final_hcc_list, RAFResult)."""
     engine = _get_hcc_engine()
     codes = [_normalize_icd10(c) for c in icd10_codes if c and c.strip()]
     result = engine.calculate_from_diagnosis(codes, demographics=_demographics_dict(age, sex))
@@ -146,6 +160,43 @@ def _section_priority(section: str | None) -> int:
     return 1
 
 
+def _evidence_section(evidence: str) -> str:
+    if "(" in evidence and evidence.endswith(")"):
+        return evidence.rsplit("(", 1)[1].rstrip(")")
+    return "note"
+
+
+def _short_desc(icd10_desc: str | None, evidence: str) -> str:
+    if icd10_desc:
+        return icd10_desc.lower()
+    return evidence.split("(")[0].strip().lower()
+
+
+def _recommendation_suspected(icd10: str, icd10_desc: str | None, evidence: str) -> str:
+    section = _evidence_section(evidence)
+    desc = _short_desc(icd10_desc, evidence)
+    return f"Add {icd10} ({desc}) — documented in {section} but not coded."
+
+
+def _recommendation_superseded(
+    claimed_icd: str,
+    target_icd: str,
+    target_desc: str | None,
+    evidence: str,
+    claimed_hcc: str,
+    superseding_hcc: str,
+) -> str:
+    reason = _short_desc(target_desc, evidence)
+    return (
+        f"Recode {claimed_icd} -> {target_icd} for documented {reason} "
+        f"(upgrades HCC {claimed_hcc} -> HCC {superseding_hcc})."
+    )
+
+
+def _recommendation_unsupported() -> str:
+    return "Validate documentation or remove unsupported code."
+
+
 def _build_evidenced_codes(
     active_problem_entities: list[dict[str, Any]],
     link_threshold: float = LINK_THRESHOLD,
@@ -174,6 +225,7 @@ def _build_evidenced_codes(
             section_label = section or "note"
             candidates[code] = {
                 "icd10": code,
+                "icd10_desc": ent.get("icd10_desc"),
                 "link_score": float(link_score),
                 "evidence": f'{ent["text"]} ({section_label})',
                 "rank": rank,
@@ -203,18 +255,62 @@ def _evidencing_code_for_hcc(
     evidenced: dict[str, dict[str, Any]],
     age: int,
     sex: str,
-) -> tuple[str, str, float]:
-    best: tuple[str, str, float] | None = None
+) -> tuple[str, str, float, str | None]:
+    best: tuple[str, str, float, str | None] | None = None
     for code, payload in evidenced.items():
         for mapping in map_icd10_to_hccs(code, age, sex):
             if mapping["hcc"] != hcc:
                 continue
             score = float(payload["link_score"])
             if best is None or score > best[2]:
-                best = (code, payload["evidence"], score)
+                best = (code, payload["evidence"], score, payload.get("icd10_desc"))
     if best:
         return best
-    return "", "no supporting documentation found", 0.0
+    return "", "no supporting documentation found", 0.0, None
+
+
+def _find_superseding_evidence(
+    claimed_hcc: str,
+    claimed_icd: str,
+    evidenced_hccs: set[str],
+    evidenced: dict[str, dict[str, Any]],
+    age: int,
+    sex: str,
+) -> tuple[str, str, str, float, str | None] | None:
+    """Return (superseding_hcc, target_icd, evidence, confidence, target_desc) if found."""
+    claimed_category = _icd_category(claimed_icd)
+    best: tuple[str, str, str, float, str | None, int] | None = None
+
+    for superseding_hcc in evidenced_hccs:
+        hierarchy_match = claimed_hcc in _hierarchy_children(superseding_hcc)
+        for code, payload in evidenced.items():
+            code_hccs = {m["hcc"] for m in map_icd10_to_hccs(code, age, sex)}
+            if superseding_hcc not in code_hccs:
+                continue
+
+            family_match = _icd_category(code) == claimed_category
+            if not hierarchy_match and not family_match:
+                continue
+
+            rank = (
+                2 if hierarchy_match else 1,
+                _section_priority(payload["evidence"].rsplit("(", 1)[-1].rstrip(")")),
+                float(payload["link_score"]),
+            )
+            candidate = (
+                superseding_hcc,
+                code,
+                payload["evidence"],
+                float(payload["link_score"]),
+                payload.get("icd10_desc"),
+                rank,
+            )
+            if best is None or candidate[5] > best[5]:
+                best = candidate
+
+    if best is None:
+        return None
+    return best[0], best[1], best[2], best[3], best[4]
 
 
 def detect_gaps(
@@ -240,7 +336,7 @@ def detect_gaps(
     gaps: list[dict[str, Any]] = []
 
     for hcc in sorted(evidenced_hccs - claimed_hccs):
-        icd10, evidence, confidence = _evidencing_code_for_hcc(hcc, evidenced, age, sex)
+        icd10, evidence, confidence, icd10_desc = _evidencing_code_for_hcc(hcc, evidenced, age, sex)
         gaps.append(
             {
                 "hcc": hcc,
@@ -249,23 +345,50 @@ def detect_gaps(
                 "icd10": icd10,
                 "evidence": evidence,
                 "confidence": confidence,
+                "recommendation": _recommendation_suspected(icd10, icd10_desc, evidence),
             }
         )
 
     for hcc in sorted(claimed_hccs - evidenced_hccs):
-        gaps.append(
-            {
-                "hcc": hcc,
-                "label": all_labels.get(hcc, f"HCC {hcc}"),
-                "status": "unsupported",
-                "icd10": _claimed_code_for_hcc(hcc, normalized_claimed, age, sex),
-                "evidence": "no supporting documentation found",
-                "confidence": 1.0,
-            }
+        claimed_icd = _claimed_code_for_hcc(hcc, normalized_claimed, age, sex)
+        supersession = _find_superseding_evidence(
+            hcc, claimed_icd, evidenced_hccs, evidenced, age, sex
         )
+        if supersession:
+            superseding_hcc, target_icd, evidence, confidence, target_desc = supersession
+            gaps.append(
+                {
+                    "hcc": hcc,
+                    "label": all_labels.get(hcc, f"HCC {hcc}"),
+                    "status": "superseded",
+                    "icd10": claimed_icd,
+                    "evidence": evidence,
+                    "confidence": confidence,
+                    "recommendation": _recommendation_superseded(
+                        claimed_icd,
+                        target_icd,
+                        target_desc,
+                        evidence,
+                        hcc,
+                        superseding_hcc,
+                    ),
+                }
+            )
+        else:
+            gaps.append(
+                {
+                    "hcc": hcc,
+                    "label": all_labels.get(hcc, f"HCC {hcc}"),
+                    "status": "unsupported",
+                    "icd10": claimed_icd,
+                    "evidence": "no supporting documentation found",
+                    "confidence": 1.0,
+                    "recommendation": _recommendation_unsupported(),
+                }
+            )
 
     for hcc in sorted(evidenced_hccs & claimed_hccs):
-        icd10, evidence, confidence = _evidencing_code_for_hcc(hcc, evidenced, age, sex)
+        icd10, evidence, confidence, icd10_desc = _evidencing_code_for_hcc(hcc, evidenced, age, sex)
         if not icd10:
             icd10 = _claimed_code_for_hcc(hcc, normalized_claimed, age, sex)
             evidence = evidence if evidence != "no supporting documentation found" else icd10
@@ -278,6 +401,7 @@ def detect_gaps(
                 "icd10": icd10,
                 "evidence": evidence,
                 "confidence": confidence,
+                "recommendation": None,
             }
         )
 

@@ -28,22 +28,45 @@ def test_demographics_from_diabetes_note():
     assert demo["sex"] == "M"
 
 
-def test_diabetes_example_suspected_complication_gap():
+def test_diabetes_example_suspected_and_superseded():
     note = EXAMPLE_NOTES[0]
     result = _analyze_gaps(note.note_text, note.claimed_codes)
 
     suspected = [g for g in result["gaps"] if g["status"] == "suspected"]
-    assert suspected, "Expected at least one suspected HCC gap"
+    assert any(g["hcc"] == "37" for g in suspected), suspected
+    assert any(g.get("recommendation") for g in suspected)
+
+    superseded = [g for g in result["gaps"] if g["status"] == "superseded"]
+    assert any(g["icd10"] == "E11.9" and g["hcc"] == "38" for g in superseded), superseded
+    assert all(g["status"] != "unsupported" or g["icd10"] != "E11.9" for g in result["gaps"])
 
     complication_evidence = [
-        g for g in suspected if g["icd10"] in DIABETES_COMPLICATION_CODES or "complication" in g["label"].lower()
+        g
+        for g in suspected
+        if g["icd10"] in DIABETES_COMPLICATION_CODES or "complication" in g["label"].lower()
     ]
-    assert complication_evidence, (
-        f"Expected suspected gap tied to diabetes complications, got: {suspected}"
-    )
+    assert complication_evidence, f"Expected suspected gap tied to diabetes complications, got: {suspected}"
 
     assert result["risk_score_potential"] >= result["risk_score_current"]
-    assert result["risk_score_delta"] >= 0
+    assert abs(result["risk_score_delta"]) < 0.01
+
+
+def test_chf_example_positive_risk_delta():
+    note = EXAMPLE_NOTES[1]
+    result = _analyze_gaps(note.note_text, note.claimed_codes)
+
+    suspected = [g for g in result["gaps"] if g["status"] == "suspected"]
+    assert suspected, "Expected suspected heart failure HCC gap"
+    assert any("heart failure" in g["label"].lower() for g in suspected)
+    assert result["risk_score_delta"] > 0
+
+
+def test_copd_example_confirmed_hcc():
+    note = EXAMPLE_NOTES[2]
+    result = _analyze_gaps(note.note_text, note.claimed_codes)
+
+    confirmed = [g for g in result["gaps"] if g["status"] == "confirmed"]
+    assert any(g["hcc"] == "280" for g in confirmed), confirmed
 
 
 def test_unsupported_claimed_code_without_evidence():
@@ -53,6 +76,7 @@ def test_unsupported_claimed_code_without_evidence():
     )
     unsupported = [g for g in result["gaps"] if g["status"] == "unsupported"]
     assert any(g["icd10"] == "I50.22" for g in unsupported)
+    assert all(g.get("recommendation") for g in unsupported)
 
 
 def test_low_link_score_excluded_from_evidence():

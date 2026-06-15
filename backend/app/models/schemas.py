@@ -30,10 +30,11 @@ class Entity(BaseModel):
 class HccGap(BaseModel):
     hcc: str
     label: str
-    status: str  # "suspected" | "confirmed" | "unsupported"
+    status: str  # "suspected" | "confirmed" | "unsupported" | "superseded"
     evidence: str
     icd10: str
     confidence: float
+    recommendation: str | None = None
 
 
 class PatientDemographics(BaseModel):
