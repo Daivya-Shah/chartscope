@@ -21,13 +21,21 @@ torch>=2.2.0
 pytest>=8.2.0
 
 # ---------------------------------------------------------------------------
+# Training only — fine-tuning / NER benchmark (backend/training/)
+# Not required to run the FastAPI server or pytest.
+# ---------------------------------------------------------------------------
+datasets>=2.19.0
+seqeval>=1.2.2
+evaluate>=0.4.0
+accelerate>=0.30.0
+
+# ---------------------------------------------------------------------------
 # Heavier NLP stack — installed in later build steps
 # ---------------------------------------------------------------------------
 # scispacy          # deferred: nmslib fails on Windows
 # fhir.resources
 # hccinfhir
 # scikit-learn
-# datasets
 
 # spaCy models (install separately):
 #   python -m spacy download en_core_web_sm

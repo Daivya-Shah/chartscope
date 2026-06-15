@@ -1,0 +1,18 @@
+{
+  "model": "microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract",
+  "output_dir": "C:\\Users\\Daivy\\Downloads\\Files\\Projects\\chartscope\\backend\\models\\finetuned_ner",
+  "dataset": "ncbi/ncbi_disease@refs/convert/parquet",
+  "epochs": 1,
+  "smoke": true,
+  "precision": 0.6166868198307134,
+  "recall": 0.53125,
+  "f1": 0.5707890318970341,
+  "per_entity": {
+    "Disease": {
+      "precision": 0.6166868198307134,
+      "recall": 0.53125,
+      "f1-score": 0.5707890318970341,
+      "support": 960
+    }
+  }
+}
