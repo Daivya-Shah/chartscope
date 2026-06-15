@@ -18,6 +18,10 @@ export interface Entity {
   score: number;
   cui?: string | null;
   icd10?: string | null;
+  icd10_desc?: string | null;
+  rxnorm?: string | null;
+  rxnorm_name?: string | null;
+  link_score?: number | null;
 }
 
 export interface HccGap {

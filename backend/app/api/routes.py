@@ -16,6 +16,7 @@ from app.pipeline.context import apply_context
 from app.pipeline.deid import deidentify
 from app.pipeline.examples import EXAMPLE_NOTES
 from app.pipeline.ingest import build_clinical_pipeline, clean_text, detect_sections
+from app.pipeline.linking import link_entities
 from app.pipeline.ner import extract_entities
 
 router = APIRouter()
@@ -33,6 +34,7 @@ async def analyze_note(request: AnalyzeRequest) -> AnalyzeResponse:
 
     raw_entities = extract_entities(normalized)
     annotated_entities = apply_context(normalized, raw_entities, sections=sections_raw)
+    linked_entities = link_entities(annotated_entities)
 
     # TODO (step 5): HCC gap detection vs request.claimed_codes using filter_active_problems
     # TODO (step 6): FHIR Bundle export from entities + gaps
@@ -45,7 +47,7 @@ async def analyze_note(request: AnalyzeRequest) -> AnalyzeResponse:
             Section(name=s["name"], start_char=s["start_char"], end_char=s["end_char"])
             for s in sections_raw
         ],
-        entities=[Entity(**ent) for ent in annotated_entities],
+        entities=[Entity(**ent) for ent in linked_entities],
         gaps=[],
         risk_score=0.0,
         fhir_bundle={},

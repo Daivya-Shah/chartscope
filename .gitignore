@@ -24,6 +24,10 @@ env/
 # ML model weights / training checkpoints (not backend/app/models/ Python package)
 backend/models/
 
+# SapBERT ICD-10 embedding cache (rebuilt on first run)
+backend/app/data/terminology/icd10_emb.npy
+backend/app/data/terminology/icd10_emb.meta.json
+
 # Node / frontend build
 frontend/node_modules/
 frontend/dist/

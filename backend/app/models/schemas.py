@@ -21,6 +21,10 @@ class Entity(BaseModel):
     score: float
     cui: str | None = None
     icd10: str | None = None
+    icd10_desc: str | None = None
+    rxnorm: str | None = None
+    rxnorm_name: str | None = None
+    link_score: float | None = None
 
 
 class HccGap(BaseModel):
