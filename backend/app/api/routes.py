@@ -7,14 +7,16 @@ from app.models.schemas import (
     Entity,
     EvalResult,
     ExampleNote,
+    PatientDemographics,
     PhiSpan,
     RandomNote,
     Section,
     SpecialtyCount,
 )
-from app.pipeline.context import apply_context
+from app.pipeline.context import apply_context, filter_active_problems
 from app.pipeline.deid import deidentify
 from app.pipeline.examples import EXAMPLE_NOTES
+from app.pipeline.hcc import demographics_from_text, detect_gaps
 from app.pipeline.ingest import build_clinical_pipeline, clean_text, detect_sections
 from app.pipeline.linking import link_entities
 from app.pipeline.ner import extract_entities
@@ -36,7 +38,15 @@ async def analyze_note(request: AnalyzeRequest) -> AnalyzeResponse:
     annotated_entities = apply_context(normalized, raw_entities, sections=sections_raw)
     linked_entities = link_entities(annotated_entities)
 
-    # TODO (step 5): HCC gap detection vs request.claimed_codes using filter_active_problems
+    demo = demographics_from_text(normalized)
+    active_problems = filter_active_problems(linked_entities)
+    gap_result = detect_gaps(
+        active_problems,
+        request.claimed_codes,
+        age=int(demo["age"]),
+        sex=str(demo["sex"]),
+    )
+
     # TODO (step 6): FHIR Bundle export from entities + gaps
 
     return AnalyzeResponse(
@@ -48,8 +58,12 @@ async def analyze_note(request: AnalyzeRequest) -> AnalyzeResponse:
             for s in sections_raw
         ],
         entities=[Entity(**ent) for ent in linked_entities],
-        gaps=[],
-        risk_score=0.0,
+        gaps=gap_result["gaps"],
+        risk_score=gap_result["risk_score_current"],
+        risk_score_current=gap_result["risk_score_current"],
+        risk_score_potential=gap_result["risk_score_potential"],
+        risk_score_delta=gap_result["risk_score_delta"],
+        demographics=PatientDemographics(**gap_result["demographics"]),
         fhir_bundle={},
     )
 

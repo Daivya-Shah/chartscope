@@ -45,6 +45,11 @@ export interface PhiSpan {
   end: number;
 }
 
+export interface PatientDemographics {
+  age: number;
+  sex: string;
+}
+
 export interface AnalyzeResponse {
   deid_redactions: number;
   deid_text: string;
@@ -53,6 +58,10 @@ export interface AnalyzeResponse {
   entities: Entity[];
   gaps: HccGap[];
   risk_score: number;
+  risk_score_current: number;
+  risk_score_potential: number;
+  risk_score_delta: number;
+  demographics: PatientDemographics;
   fhir_bundle: Record<string, unknown>;
 }
 

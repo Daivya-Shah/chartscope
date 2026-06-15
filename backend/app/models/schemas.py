@@ -30,10 +30,15 @@ class Entity(BaseModel):
 class HccGap(BaseModel):
     hcc: str
     label: str
-    status: str  # "gap" | "supported" | "unsupported"
+    status: str  # "suspected" | "confirmed" | "unsupported"
     evidence: str
     icd10: str
     confidence: float
+
+
+class PatientDemographics(BaseModel):
+    age: int
+    sex: str
 
 
 class Section(BaseModel):
@@ -56,6 +61,12 @@ class AnalyzeResponse(BaseModel):
     entities: list[Entity] = Field(default_factory=list)
     gaps: list[HccGap] = Field(default_factory=list)
     risk_score: float = 0.0
+    risk_score_current: float = 0.0
+    risk_score_potential: float = 0.0
+    risk_score_delta: float = 0.0
+    demographics: PatientDemographics = Field(
+        default_factory=lambda: PatientDemographics(age=70, sex="M")
+    )
     fhir_bundle: dict = Field(default_factory=dict)
 
 

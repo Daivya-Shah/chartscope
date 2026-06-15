@@ -20,6 +20,9 @@ torch>=2.2.0
 # Terminology linking — SapBERT + lexical rerank (step 4)
 rapidfuzz>=3.9.0
 
+# HCC gap engine — CMS-HCC V28 risk adjustment (step 5)
+hccinfhir>=0.3.0
+
 # Testing
 pytest>=8.2.0
 
