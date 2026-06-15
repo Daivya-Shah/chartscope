@@ -5,6 +5,8 @@ import type {
   EvalResult,
   ExampleNote,
   HealthResponse,
+  RandomNote,
+  SpecialtyCount,
 } from "../types/api";
 
 const baseURL = import.meta.env.VITE_API_BASE ?? "/api";
@@ -29,8 +31,15 @@ export async function getExamples(): Promise<ExampleNote[]> {
   return data;
 }
 
-export async function getRandomNote(): Promise<ExampleNote> {
-  const { data } = await client.get<ExampleNote>("/mtsamples/random");
+export async function getRandomNote(specialty?: string): Promise<RandomNote> {
+  const { data } = await client.get<RandomNote>("/mtsamples/random", {
+    params: specialty ? { specialty } : undefined,
+  });
+  return data;
+}
+
+export async function getSpecialties(): Promise<SpecialtyCount[]> {
+  const { data } = await client.get<SpecialtyCount[]>("/mtsamples/specialties");
   return data;
 }
 

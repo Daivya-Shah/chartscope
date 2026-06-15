@@ -39,6 +39,20 @@ export interface ExampleNote {
   title: string;
   specialty: string;
   note_text: string;
+  claimed_codes: string[];
+  description: string;
+}
+
+export interface RandomNote {
+  sample_id: string;
+  specialty: string;
+  description: string;
+  transcription: string;
+}
+
+export interface SpecialtyCount {
+  specialty: string;
+  count: number;
 }
 
 export interface EvalResult {

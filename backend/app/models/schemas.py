@@ -42,6 +42,20 @@ class ExampleNote(BaseModel):
     title: str
     specialty: str
     note_text: str
+    claimed_codes: list[str] = Field(default_factory=list)
+    description: str = ""
+
+
+class RandomNote(BaseModel):
+    sample_id: str
+    specialty: str
+    description: str
+    transcription: str
+
+
+class SpecialtyCount(BaseModel):
+    specialty: str
+    count: int
 
 
 class EvalResult(BaseModel):

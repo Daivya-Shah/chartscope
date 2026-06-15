@@ -1,0 +1,269 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "timestamp": "2026-06-15",
+  "identifier": {
+    "system": "urn:chartscope:synthea",
+    "value": "synthetic-bundle-007"
+  },
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:c0c2df5f-b083-4c70-a591-d8a5f1ecb345",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "c0c2df5f-b083-4c70-a591-d8a5f1ecb345",
+        "meta": {
+          "profile": [
+            "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"
+          ],
+          "tag": [
+            {
+              "system": "http://chartscope.local/tags",
+              "code": "synthetic",
+              "display": "Fully synthetic \u2014 ChartScope built-in generator"
+            }
+          ]
+        },
+        "identifier": [
+          {
+            "system": "urn:chartscope:synthetic",
+            "value": "SYN-007"
+          }
+        ],
+        "gender": "male",
+        "birthDate": "1963-04-15",
+        "deceasedBoolean": false,
+        "name": [
+          {
+            "use": "official",
+            "family": "SyntheticPatient007",
+            "given": [
+              "ChartScope",
+              "Demo"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:5b9bdeb3-d507-419d-8e9f-eafbed586232",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "5b9bdeb3-d507-419d-8e9f-eafbed586232",
+        "meta": {
+          "tag": [
+            {
+              "system": "http://chartscope.local/tags",
+              "code": "synthetic",
+              "display": "Fully synthetic condition"
+            }
+          ]
+        },
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "verificationStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+              "code": "confirmed"
+            }
+          ]
+        },
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                "code": "encounter-diagnosis"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "I50.32",
+              "display": "Chronic diastolic (congestive) heart failure"
+            }
+          ],
+          "text": "Chronic diastolic (congestive) heart failure"
+        },
+        "subject": {
+          "reference": "urn:uuid:c0c2df5f-b083-4c70-a591-d8a5f1ecb345"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:248bfb11-b657-45de-93b7-e53ab056d498",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "248bfb11-b657-45de-93b7-e53ab056d498",
+        "meta": {
+          "tag": [
+            {
+              "system": "http://chartscope.local/tags",
+              "code": "synthetic",
+              "display": "Fully synthetic condition"
+            }
+          ]
+        },
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "verificationStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+              "code": "confirmed"
+            }
+          ]
+        },
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                "code": "encounter-diagnosis"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "J44.1",
+              "display": "Chronic obstructive pulmonary disease with acute exacerbation"
+            }
+          ],
+          "text": "Chronic obstructive pulmonary disease with acute exacerbation"
+        },
+        "subject": {
+          "reference": "urn:uuid:c0c2df5f-b083-4c70-a591-d8a5f1ecb345"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:007994a3-4c5b-4a7e-a917-d9f7b14cc374",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "007994a3-4c5b-4a7e-a917-d9f7b14cc374",
+        "meta": {
+          "tag": [
+            {
+              "system": "http://chartscope.local/tags",
+              "code": "synthetic",
+              "display": "Fully synthetic condition"
+            }
+          ]
+        },
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "verificationStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+              "code": "confirmed"
+            }
+          ]
+        },
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                "code": "encounter-diagnosis"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "J44.9",
+              "display": "Chronic obstructive pulmonary disease, unspecified"
+            }
+          ],
+          "text": "Chronic obstructive pulmonary disease, unspecified"
+        },
+        "subject": {
+          "reference": "urn:uuid:c0c2df5f-b083-4c70-a591-d8a5f1ecb345"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:14311a6c-86b2-4721-895b-aa4d97230b7b",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "14311a6c-86b2-4721-895b-aa4d97230b7b",
+        "meta": {
+          "tag": [
+            {
+              "system": "http://chartscope.local/tags",
+              "code": "synthetic",
+              "display": "Fully synthetic condition"
+            }
+          ]
+        },
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "verificationStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+              "code": "confirmed"
+            }
+          ]
+        },
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                "code": "encounter-diagnosis"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "N18.3",
+              "display": "Chronic kidney disease, stage 3"
+            }
+          ],
+          "text": "Chronic kidney disease, stage 3"
+        },
+        "subject": {
+          "reference": "urn:uuid:c0c2df5f-b083-4c70-a591-d8a5f1ecb345"
+        }
+      }
+    }
+  ]
+}

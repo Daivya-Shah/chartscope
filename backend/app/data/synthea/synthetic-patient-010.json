@@ -1,0 +1,214 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "timestamp": "2026-06-15",
+  "identifier": {
+    "system": "urn:chartscope:synthea",
+    "value": "synthetic-bundle-010"
+  },
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:cade220e-e05f-466f-980b-4f4cb87e285e",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "cade220e-e05f-466f-980b-4f4cb87e285e",
+        "meta": {
+          "profile": [
+            "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"
+          ],
+          "tag": [
+            {
+              "system": "http://chartscope.local/tags",
+              "code": "synthetic",
+              "display": "Fully synthetic \u2014 ChartScope built-in generator"
+            }
+          ]
+        },
+        "identifier": [
+          {
+            "system": "urn:chartscope:synthetic",
+            "value": "SYN-010"
+          }
+        ],
+        "gender": "female",
+        "birthDate": "1945-03-17",
+        "deceasedBoolean": false,
+        "name": [
+          {
+            "use": "official",
+            "family": "SyntheticPatient010",
+            "given": [
+              "ChartScope",
+              "Demo"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:8fec240f-1987-4e5f-9912-f4fa6ccedab9",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "8fec240f-1987-4e5f-9912-f4fa6ccedab9",
+        "meta": {
+          "tag": [
+            {
+              "system": "http://chartscope.local/tags",
+              "code": "synthetic",
+              "display": "Fully synthetic condition"
+            }
+          ]
+        },
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "verificationStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+              "code": "confirmed"
+            }
+          ]
+        },
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                "code": "encounter-diagnosis"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "I25.10",
+              "display": "Atherosclerotic heart disease of native coronary artery without angina pectoris"
+            }
+          ],
+          "text": "Atherosclerotic heart disease of native coronary artery without angina pectoris"
+        },
+        "subject": {
+          "reference": "urn:uuid:cade220e-e05f-466f-980b-4f4cb87e285e"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:e228f20d-6ac0-44a9-84ac-a7bfe97de49d",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "e228f20d-6ac0-44a9-84ac-a7bfe97de49d",
+        "meta": {
+          "tag": [
+            {
+              "system": "http://chartscope.local/tags",
+              "code": "synthetic",
+              "display": "Fully synthetic condition"
+            }
+          ]
+        },
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "verificationStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+              "code": "confirmed"
+            }
+          ]
+        },
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                "code": "encounter-diagnosis"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "E11.9",
+              "display": "Type 2 diabetes mellitus without complications"
+            }
+          ],
+          "text": "Type 2 diabetes mellitus without complications"
+        },
+        "subject": {
+          "reference": "urn:uuid:cade220e-e05f-466f-980b-4f4cb87e285e"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:9fc34a3d-4bbc-490e-b198-4a9564ebfcd4",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "9fc34a3d-4bbc-490e-b198-4a9564ebfcd4",
+        "meta": {
+          "tag": [
+            {
+              "system": "http://chartscope.local/tags",
+              "code": "synthetic",
+              "display": "Fully synthetic condition"
+            }
+          ]
+        },
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "verificationStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+              "code": "confirmed"
+            }
+          ]
+        },
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                "code": "encounter-diagnosis"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "E11.22",
+              "display": "Type 2 diabetes mellitus with diabetic chronic kidney disease"
+            }
+          ],
+          "text": "Type 2 diabetes mellitus with diabetic chronic kidney disease"
+        },
+        "subject": {
+          "reference": "urn:uuid:cade220e-e05f-466f-980b-4f4cb87e285e"
+        }
+      }
+    }
+  ]
+}

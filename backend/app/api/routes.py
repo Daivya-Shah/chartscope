@@ -1,5 +1,6 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Query
 
+from app.data.loaders import get_random_note, list_specialties
 from app.models.schemas import (
     AnalyzeRequest,
     AnalyzeResponse,
@@ -7,7 +8,10 @@ from app.models.schemas import (
     EvalResult,
     ExampleNote,
     HccGap,
+    RandomNote,
+    SpecialtyCount,
 )
+from app.pipeline.examples import EXAMPLE_NOTES
 
 router = APIRouter()
 
@@ -100,49 +104,26 @@ async def analyze_note(request: AnalyzeRequest) -> AnalyzeResponse:
     )
 
 
-# TODO (build step: examples): serve curated example notes from MTSamples/Synthea
 @router.get("/examples", response_model=list[ExampleNote])
 async def get_examples() -> list[ExampleNote]:
-    return [
-        ExampleNote(
-            id="ex-001",
-            title="Diabetes Follow-up",
-            specialty="Internal Medicine",
-            note_text=(
-                "ASSESSMENT: 58-year-old male with type 2 diabetes mellitus, "
-                "well controlled on metformin 1000mg BID. HbA1c 7.1%. "
-                "No chest pain or shortness of breath."
-            ),
-        ),
-        ExampleNote(
-            id="ex-002",
-            title="CHF Exacerbation",
-            specialty="Cardiology",
-            note_text=(
-                "HISTORY: Patient presents with worsening dyspnea and lower extremity edema. "
-                "Known history of congestive heart failure, EF 35%. "
-                "PLAN: Increase furosemide, daily weights."
-            ),
-        ),
-    ]
+    return EXAMPLE_NOTES
 
 
-# TODO (build step: mtsamples): load random row from data/raw/mtsamples.csv
-@router.get("/mtsamples/random", response_model=ExampleNote)
-async def get_random_mtsample() -> ExampleNote:
-    return ExampleNote(
-        id="mts-0042",
-        title="Orthopedic Consultation",
-        specialty="Orthopedic",
-        note_text=(
-            "CHIEF COMPLAINT: Right knee pain.\n\n"
-            "HISTORY: 45-year-old female with 3-week history of progressive right knee pain, "
-            "worse with stair climbing. No trauma. Past medical history significant for obesity.\n\n"
-            "EXAM: Mild effusion, tenderness over medial joint line. Full ROM with discomfort.\n\n"
-            "IMPRESSION: Medial meniscus tear, right knee.\n\n"
-            "PLAN: MRI knee, physical therapy, NSAIDs PRN."
-        ),
-    )
+@router.get("/mtsamples/random", response_model=RandomNote)
+async def get_random_mtsample(
+    specialty: str | None = Query(default=None, description="Filter by medical specialty"),
+) -> RandomNote:
+    try:
+        note = get_random_note(specialty=specialty)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return RandomNote(**note)
+
+
+@router.get("/mtsamples/specialties", response_model=list[SpecialtyCount])
+async def get_mtsample_specialties() -> list[SpecialtyCount]:
+    rows = list_specialties()
+    return [SpecialtyCount(**row) for row in rows]
 
 
 # TODO (build step: eval): run eval_harness.py metrics against gold-standard fixtures

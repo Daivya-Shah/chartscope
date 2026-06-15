@@ -1,0 +1,214 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "timestamp": "2026-06-15",
+  "identifier": {
+    "system": "urn:chartscope:synthea",
+    "value": "synthetic-bundle-006"
+  },
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:a7fa389a-e069-4a7f-87ec-662a01c72162",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "a7fa389a-e069-4a7f-87ec-662a01c72162",
+        "meta": {
+          "profile": [
+            "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"
+          ],
+          "tag": [
+            {
+              "system": "http://chartscope.local/tags",
+              "code": "synthetic",
+              "display": "Fully synthetic \u2014 ChartScope built-in generator"
+            }
+          ]
+        },
+        "identifier": [
+          {
+            "system": "urn:chartscope:synthetic",
+            "value": "SYN-006"
+          }
+        ],
+        "gender": "female",
+        "birthDate": "1948-04-29",
+        "deceasedBoolean": false,
+        "name": [
+          {
+            "use": "official",
+            "family": "SyntheticPatient006",
+            "given": [
+              "ChartScope",
+              "Demo"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:aed7a4a2-8f4d-4826-ba4b-1ab3697adca3",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "aed7a4a2-8f4d-4826-ba4b-1ab3697adca3",
+        "meta": {
+          "tag": [
+            {
+              "system": "http://chartscope.local/tags",
+              "code": "synthetic",
+              "display": "Fully synthetic condition"
+            }
+          ]
+        },
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "verificationStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+              "code": "confirmed"
+            }
+          ]
+        },
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                "code": "encounter-diagnosis"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "E11.22",
+              "display": "Type 2 diabetes mellitus with diabetic chronic kidney disease"
+            }
+          ],
+          "text": "Type 2 diabetes mellitus with diabetic chronic kidney disease"
+        },
+        "subject": {
+          "reference": "urn:uuid:a7fa389a-e069-4a7f-87ec-662a01c72162"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:a518d70d-3ba4-4fc9-a741-68fc67b94751",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "a518d70d-3ba4-4fc9-a741-68fc67b94751",
+        "meta": {
+          "tag": [
+            {
+              "system": "http://chartscope.local/tags",
+              "code": "synthetic",
+              "display": "Fully synthetic condition"
+            }
+          ]
+        },
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "verificationStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+              "code": "confirmed"
+            }
+          ]
+        },
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                "code": "encounter-diagnosis"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "E11.42",
+              "display": "Type 2 diabetes mellitus with diabetic polyneuropathy"
+            }
+          ],
+          "text": "Type 2 diabetes mellitus with diabetic polyneuropathy"
+        },
+        "subject": {
+          "reference": "urn:uuid:a7fa389a-e069-4a7f-87ec-662a01c72162"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:1546a3dc-faf5-4680-bec9-c687bb22c186",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "1546a3dc-faf5-4680-bec9-c687bb22c186",
+        "meta": {
+          "tag": [
+            {
+              "system": "http://chartscope.local/tags",
+              "code": "synthetic",
+              "display": "Fully synthetic condition"
+            }
+          ]
+        },
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "verificationStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+              "code": "confirmed"
+            }
+          ]
+        },
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                "code": "encounter-diagnosis"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "I50.22",
+              "display": "Chronic systolic (congestive) heart failure"
+            }
+          ],
+          "text": "Chronic systolic (congestive) heart failure"
+        },
+        "subject": {
+          "reference": "urn:uuid:a7fa389a-e069-4a7f-87ec-662a01c72162"
+        }
+      }
+    }
+  ]
+}

@@ -6,6 +6,8 @@ from app.models.schemas import (
     ExampleNote,
     HccGap,
     HealthResponse,
+    RandomNote,
+    SpecialtyCount,
 )
 
 __all__ = [
@@ -16,4 +18,6 @@ __all__ = [
     "ExampleNote",
     "HccGap",
     "HealthResponse",
+    "RandomNote",
+    "SpecialtyCount",
 ]

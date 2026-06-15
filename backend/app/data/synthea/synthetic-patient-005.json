@@ -1,0 +1,159 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "timestamp": "2026-06-15",
+  "identifier": {
+    "system": "urn:chartscope:synthea",
+    "value": "synthetic-bundle-005"
+  },
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:9b50876e-095d-4d38-94ef-e72731226fcb",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "9b50876e-095d-4d38-94ef-e72731226fcb",
+        "meta": {
+          "profile": [
+            "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"
+          ],
+          "tag": [
+            {
+              "system": "http://chartscope.local/tags",
+              "code": "synthetic",
+              "display": "Fully synthetic \u2014 ChartScope built-in generator"
+            }
+          ]
+        },
+        "identifier": [
+          {
+            "system": "urn:chartscope:synthetic",
+            "value": "SYN-005"
+          }
+        ],
+        "gender": "male",
+        "birthDate": "1952-05-09",
+        "deceasedBoolean": false,
+        "name": [
+          {
+            "use": "official",
+            "family": "SyntheticPatient005",
+            "given": [
+              "ChartScope",
+              "Demo"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:d4f34bc6-d6f5-4684-a297-7e85f4d18213",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "d4f34bc6-d6f5-4684-a297-7e85f4d18213",
+        "meta": {
+          "tag": [
+            {
+              "system": "http://chartscope.local/tags",
+              "code": "synthetic",
+              "display": "Fully synthetic condition"
+            }
+          ]
+        },
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "verificationStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+              "code": "confirmed"
+            }
+          ]
+        },
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                "code": "encounter-diagnosis"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "E78.5",
+              "display": "Hyperlipidemia, unspecified"
+            }
+          ],
+          "text": "Hyperlipidemia, unspecified"
+        },
+        "subject": {
+          "reference": "urn:uuid:9b50876e-095d-4d38-94ef-e72731226fcb"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:d56d904e-35f1-4ac1-a8bb-42467da93e8a",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "d56d904e-35f1-4ac1-a8bb-42467da93e8a",
+        "meta": {
+          "tag": [
+            {
+              "system": "http://chartscope.local/tags",
+              "code": "synthetic",
+              "display": "Fully synthetic condition"
+            }
+          ]
+        },
+        "clinicalStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+              "code": "active"
+            }
+          ]
+        },
+        "verificationStatus": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+              "code": "confirmed"
+            }
+          ]
+        },
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                "code": "encounter-diagnosis"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "I25.10",
+              "display": "Atherosclerotic heart disease of native coronary artery without angina pectoris"
+            }
+          ],
+          "text": "Atherosclerotic heart disease of native coronary artery without angina pectoris"
+        },
+        "subject": {
+          "reference": "urn:uuid:9b50876e-095d-4d38-94ef-e72731226fcb"
+        }
+      }
+    }
+  ]
+}
