@@ -62,10 +62,17 @@ _VAGUE_RELATIVE = re.compile(
     re.IGNORECASE,
 )
 
+# Medication dosing frequency — not calendar PHI.
+_MED_FREQUENCY = re.compile(
+    r"^\s*(?:daily|nightly|weekly|hourly|bid|tid|qid|qhs|prn)\s*$",
+    re.IGNORECASE,
+)
+
 _PRESERVE_DATE_TIME_CHECKS: tuple[re.Pattern[str], ...] = (
     _NUMERIC_DURATION,
     _WRITTEN_DURATION,
     _VAGUE_RELATIVE,
+    _MED_FREQUENCY,
 )
 
 

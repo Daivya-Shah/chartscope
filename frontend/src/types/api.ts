@@ -10,11 +10,14 @@ export interface Entity {
   end_char: number;
   section: string | null;
   negated: boolean;
+  uncertain: boolean;
   historical: boolean;
   family: boolean;
+  is_active: boolean;
+  drop_reason: string | null;
+  score: number;
   cui?: string | null;
   icd10?: string | null;
-  score?: number | null;
 }
 
 export interface HccGap {

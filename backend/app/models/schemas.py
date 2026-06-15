@@ -13,11 +13,14 @@ class Entity(BaseModel):
     end_char: int
     section: str | None = None
     negated: bool = False
+    uncertain: bool = False
     historical: bool = False
     family: bool = False
+    is_active: bool = True
+    drop_reason: str | None = None
+    score: float
     cui: str | None = None
     icd10: str | None = None
-    score: float | None = None
 
 
 class HccGap(BaseModel):

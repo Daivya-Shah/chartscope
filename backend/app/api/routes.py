@@ -4,6 +4,7 @@ from app.data.loaders import get_random_note, list_specialties
 from app.models.schemas import (
     AnalyzeRequest,
     AnalyzeResponse,
+    Entity,
     EvalResult,
     ExampleNote,
     PhiSpan,
@@ -11,9 +12,11 @@ from app.models.schemas import (
     Section,
     SpecialtyCount,
 )
+from app.pipeline.context import apply_context
 from app.pipeline.deid import deidentify
 from app.pipeline.examples import EXAMPLE_NOTES
 from app.pipeline.ingest import build_clinical_pipeline, clean_text, detect_sections
+from app.pipeline.ner import extract_entities
 
 router = APIRouter()
 
@@ -28,8 +31,10 @@ async def analyze_note(request: AnalyzeRequest) -> AnalyzeResponse:
     doc = nlp(normalized)
     sections_raw = detect_sections(doc)
 
-    # TODO (step 3): NER entity extraction on normalized de-identified text
-    # TODO (step 5): HCC gap detection vs request.claimed_codes
+    raw_entities = extract_entities(normalized)
+    annotated_entities = apply_context(normalized, raw_entities, sections=sections_raw)
+
+    # TODO (step 5): HCC gap detection vs request.claimed_codes using filter_active_problems
     # TODO (step 6): FHIR Bundle export from entities + gaps
 
     return AnalyzeResponse(
@@ -40,7 +45,7 @@ async def analyze_note(request: AnalyzeRequest) -> AnalyzeResponse:
             Section(name=s["name"], start_char=s["start_char"], end_char=s["end_char"])
             for s in sections_raw
         ],
-        entities=[],
+        entities=[Entity(**ent) for ent in annotated_entities],
         gaps=[],
         risk_score=0.0,
         fhir_bundle={},
