@@ -38,6 +38,36 @@ ENTITY_TAGS: dict[str, str] = {
 # Prefer lg for Presidio PHI recall; fall back to md if lg unavailable.
 _PRESIDIO_MODEL_CANDIDATES = ("en_core_web_lg", "en_core_web_md", "en_core_web_sm")
 
+# Ages under 90 (HIPAA Safe Harbor) — preserve when Presidio mis-tags as DATE_TIME.
+_AGE_YEARS_OLD = re.compile(r"\b(\d{1,2})\s*-?\s*year\s*-?\s*old\b", re.IGNORECASE)
+_AGE_YO = re.compile(r"\b(\d{1,2})\s*(yo|y/o|yof|yom)\b", re.IGNORECASE)
+
+# Clinical durations — not PHI.
+_NUMERIC_DURATION = re.compile(
+    r"\b\d+\s*[- ]?\s*(?:year|month|week|day|hour)s?\b(?!\s*old)",
+    re.IGNORECASE,
+)
+_WRITTEN_DURATION = re.compile(
+    r"\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
+    r"thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|"
+    r"thirty|forty|fifty|sixty|seventy|eighty|couple|few|several)\s*"
+    r"[- ]?\s*(?:year|month|week|day|hour)s?\b(?!\s*old)",
+    re.IGNORECASE,
+)
+
+# Vague relative clinical time — not calendar PHI.
+_VAGUE_RELATIVE = re.compile(
+    r"^\s*(?:today|yesterday|currently|recently|now|presently|"
+    r"this morning|this afternoon|this evening|this week|this month)\s*$",
+    re.IGNORECASE,
+)
+
+_PRESERVE_DATE_TIME_CHECKS: tuple[re.Pattern[str], ...] = (
+    _NUMERIC_DURATION,
+    _WRITTEN_DURATION,
+    _VAGUE_RELATIVE,
+)
+
 
 def _resolve_presidio_model() -> str:
     import spacy
@@ -89,7 +119,7 @@ def _build_custom_recognizers() -> list[PatternRecognizer]:
         patterns=[
             Pattern(
                 name="age_years_old",
-                regex=r"\b(9[0-9]|[1-9]\d{2,})\s*-?\s*(?:year(?:s)?\s*old|y\.?o\.?|yo)\b",
+                regex=r"\b(9[0-9]|[1-9]\d{2,})\s*-?\s*year(?:s)?\s*-?\s*old\b",
                 score=0.9,
             ),
             Pattern(
@@ -146,6 +176,39 @@ def _build_operators() -> dict[str, OperatorConfig]:
     return operators
 
 
+def _is_preservable_age(span_text: str) -> bool:
+    """Return True for ages under 90 (HIPAA Safe Harbor — not an identifier)."""
+    for pattern in (_AGE_YEARS_OLD, _AGE_YO):
+        match = pattern.search(span_text)
+        if match:
+            return int(match.group(1)) <= 89
+    return False
+
+
+def _should_preserve_date_time(span_text: str) -> bool:
+    """Deny-list filter: reject DATE_TIME spans that are clinical ages/durations, not PHI."""
+    if _is_preservable_age(span_text):
+        return True
+    return any(pattern.search(span_text) for pattern in _PRESERVE_DATE_TIME_CHECKS)
+
+
+def _filter_date_time_false_positives(
+    text: str,
+    results: list[RecognizerResult],
+) -> list[RecognizerResult]:
+    """Drop DATE_TIME spans that match clinical age/duration/relative-time deny-list."""
+    filtered: list[RecognizerResult] = []
+    for result in results:
+        if result.entity_type != "DATE_TIME":
+            filtered.append(result)
+            continue
+        span_text = text[result.start : result.end]
+        if _should_preserve_date_time(span_text):
+            continue
+        filtered.append(result)
+    return filtered
+
+
 def deidentify(text: str) -> dict[str, Any]:
     """Detect and mask PHI; returns clean_text, phi_spans, redaction_count."""
     if not text or not text.strip():
@@ -168,6 +231,8 @@ def deidentify(text: str) -> dict[str, Any]:
             continue
         kept.append(result)
         occupied.append((result.start, result.end))
+
+    kept = _filter_date_time_false_positives(text, kept)
 
     operators = _build_operators()
     anonymized = anonymizer.anonymize(

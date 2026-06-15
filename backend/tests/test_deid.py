@@ -19,6 +19,38 @@ def test_deidentify_masks_name_date_and_mrn():
     assert any(span["type"] == "MRN" for span in result["phi_spans"])
 
 
+def test_preserves_age_under_90():
+    result = deidentify("68-year-old male with type 2 diabetes.")
+    assert "68-year-old" in result["clean_text"]
+    assert "[DATE]" not in result["clean_text"] or "68-year-old" in result["clean_text"]
+
+
+def test_preserves_clinical_duration():
+    result = deidentify("Patient has 10-year history of type 2 diabetes.")
+    assert "10-year history" in result["clean_text"]
+
+    result = deidentify("Presented with two-week cough.")
+    assert "two-week" in result["clean_text"]
+
+
+def test_masks_age_over_89():
+    result = deidentify("92-year-old male with hypertension.")
+    assert "92-year-old" not in result["clean_text"]
+    assert "[AGE>89]" in result["clean_text"]
+
+
+def test_masks_mrn_syn_10042():
+    result = deidentify("SYNTHETIC PATIENT — MRN SYN-10042")
+    assert "SYN-10042" not in result["clean_text"]
+    assert "[MRN]" in result["clean_text"]
+
+
+def test_masks_genuine_calendar_date():
+    result = deidentify("Follow-up visit on March 3, 2024 for diabetes management.")
+    assert "March 3, 2024" not in result["clean_text"]
+    assert "[DATE]" in result["clean_text"]
+
+
 def test_detect_sections_finds_clinical_headers():
     note = EXAMPLE_NOTES[0].note_text
     nlp = build_clinical_pipeline()

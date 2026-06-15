@@ -28,6 +28,7 @@ These datasets are reserved exclusively for **offline model training** on a loca
 2. All API endpoints in this scaffold return synthetic or MTSamples-derived placeholder data only.
 3. CI (future) should include a restricted-data filename scan.
 4. Contributors must not paste real PHI/PII into issues, PRs, or commit messages.
+5. De-identification targets HIPAA Safe Harbor identifiers and intentionally preserves ages under 90 and clinical durations to retain clinical meaning.
 
 ## Offline Training Roadmap (Not in This Repo)
 
