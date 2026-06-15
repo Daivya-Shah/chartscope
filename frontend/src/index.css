@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-clinical-50 text-clinical-900 antialiased;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-xl border border-clinical-200/80 bg-white shadow-sm;
+  }
+
+  .panel-header {
+    @apply border-b border-clinical-100 px-5 py-3.5;
+  }
+
+  .placeholder-badge {
+    @apply inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-200;
+  }
+}

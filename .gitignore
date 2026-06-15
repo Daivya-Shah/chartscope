@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/tsconfig.tsbuildinfo
+*.local
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Docker
+.docker/
+
+# ---------------------------------------------------------------------------
+# RESTRICTED CLINICAL DATA — NEVER COMMIT
+# MIMIC, n2c2, i2b2, and other credentialed/DUA-restricted datasets are
+# reserved for OFFLINE training only. See DATA_GOVERNANCE.md.
+# ---------------------------------------------------------------------------
+**/mimic*/
+**/MIMIC*/
+**/*mimic-iii*
+**/*mimic-iv*
+**/n2c2*/
+**/*n2c2*
+**/i2b2*/
+**/*i2b2*
+**/*deid*.csv
+**/*notes*.csv
+!backend/app/data/raw/mtsamples.csv
+**/restricted/
+**/credentialed/
+**/dua/
+**/*.dcm
+**/phi/
+**/patient_data/

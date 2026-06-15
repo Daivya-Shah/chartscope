@@ -1,0 +1,25 @@
+# Lightweight web stack (installed in scaffold step)
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+pydantic>=2.7.0
+pandas>=2.2.0
+python-multipart>=0.0.9
+httpx>=0.27.0
+
+# Testing
+pytest>=8.2.0
+
+# ---------------------------------------------------------------------------
+# Heavier NLP stack — installed in later build steps (do NOT install yet)
+# ---------------------------------------------------------------------------
+# spacy~=3.7
+# scispacy
+# medspacy
+# presidio-analyzer
+# presidio-anonymizer
+# fhir.resources
+# hccinfhir
+# scikit-learn
+# transformers
+# torch
+# datasets
