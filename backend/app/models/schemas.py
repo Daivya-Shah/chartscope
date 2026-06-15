@@ -29,12 +29,27 @@ class HccGap(BaseModel):
     confidence: float
 
 
+class Section(BaseModel):
+    name: str
+    start_char: int
+    end_char: int
+
+
+class PhiSpan(BaseModel):
+    type: str
+    start: int
+    end: int
+
+
 class AnalyzeResponse(BaseModel):
     deid_redactions: int
-    entities: list[Entity]
-    gaps: list[HccGap]
-    risk_score: float
-    fhir_bundle: dict
+    deid_text: str
+    sections: list[Section]
+    phi_spans: list[PhiSpan]
+    entities: list[Entity] = Field(default_factory=list)
+    gaps: list[HccGap] = Field(default_factory=list)
+    risk_score: float = 0.0
+    fhir_bundle: dict = Field(default_factory=dict)
 
 
 class ExampleNote(BaseModel):

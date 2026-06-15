@@ -4,103 +4,46 @@ from app.data.loaders import get_random_note, list_specialties
 from app.models.schemas import (
     AnalyzeRequest,
     AnalyzeResponse,
-    Entity,
     EvalResult,
     ExampleNote,
-    HccGap,
+    PhiSpan,
     RandomNote,
+    Section,
     SpecialtyCount,
 )
+from app.pipeline.deid import deidentify
 from app.pipeline.examples import EXAMPLE_NOTES
+from app.pipeline.ingest import build_clinical_pipeline, clean_text, detect_sections
 
 router = APIRouter()
 
 
-# ---------------------------------------------------------------------------
-# TODO (build step: analyze pipeline): wire ingest → deid → ner → context
-#       → linking → hcc → fhir_export and return real results
-# ---------------------------------------------------------------------------
 @router.post("/analyze", response_model=AnalyzeResponse)
 async def analyze_note(request: AnalyzeRequest) -> AnalyzeResponse:
+    # De-identification runs FIRST by design — PHI must be masked before downstream NLP.
+    deid_result = deidentify(request.note_text)
+    normalized = clean_text(deid_result["clean_text"])
+
+    nlp = build_clinical_pipeline()
+    doc = nlp(normalized)
+    sections_raw = detect_sections(doc)
+
+    # TODO (step 3): NER entity extraction on normalized de-identified text
+    # TODO (step 5): HCC gap detection vs request.claimed_codes
+    # TODO (step 6): FHIR Bundle export from entities + gaps
+
     return AnalyzeResponse(
-        deid_redactions=2,
-        entities=[
-            Entity(
-                text="type 2 diabetes mellitus",
-                label="CONDITION",
-                start_char=45,
-                end_char=69,
-                section="Assessment",
-                negated=False,
-                historical=False,
-                family=False,
-                cui="C0011860",
-                icd10="E11.9",
-                score=0.94,
-            ),
-            Entity(
-                text="metformin",
-                label="MEDICATION",
-                start_char=120,
-                end_char=129,
-                section="Medications",
-                negated=False,
-                score=0.91,
-            ),
-            Entity(
-                text="no chest pain",
-                label="SYMPTOM",
-                start_char=200,
-                end_char=213,
-                section="Review of Systems",
-                negated=True,
-                score=0.88,
-            ),
+        deid_redactions=deid_result["redaction_count"],
+        deid_text=normalized,
+        phi_spans=[PhiSpan(type=s["type"], start=s["start"], end=s["end"]) for s in deid_result["phi_spans"]],
+        sections=[
+            Section(name=s["name"], start_char=s["start_char"], end_char=s["end_char"])
+            for s in sections_raw
         ],
-        gaps=[
-            HccGap(
-                hcc="HCC19",
-                label="Diabetes without Complication",
-                status="supported",
-                evidence="type 2 diabetes mellitus documented in Assessment",
-                icd10="E11.9",
-                confidence=0.92,
-            ),
-            HccGap(
-                hcc="HCC85",
-                label="Congestive Heart Failure",
-                status="gap",
-                evidence="No CHF documentation found; consider if clinically present",
-                icd10="I50.9",
-                confidence=0.71,
-            ),
-        ],
-        risk_score=1.234,
-        fhir_bundle={
-            "resourceType": "Bundle",
-            "type": "collection",
-            "entry": [
-                {
-                    "resource": {
-                        "resourceType": "Condition",
-                        "code": {
-                            "coding": [
-                                {
-                                    "system": "http://hl7.org/fhir/sid/icd-10-cm",
-                                    "code": "E11.9",
-                                    "display": "Type 2 diabetes mellitus without complications",
-                                }
-                            ]
-                        },
-                        "clinicalStatus": {
-                            "coding": [
-                                {"system": "http://terminology.hl7.org/CodeSystem/condition-clinical", "code": "active"}
-                            ]
-                        },
-                    }
-                }
-            ],
-        },
+        entities=[],
+        gaps=[],
+        risk_score=0.0,
+        fhir_bundle={},
     )
 
 

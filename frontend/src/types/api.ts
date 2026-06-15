@@ -26,8 +26,23 @@ export interface HccGap {
   confidence: number;
 }
 
+export interface Section {
+  name: string;
+  start_char: number;
+  end_char: number;
+}
+
+export interface PhiSpan {
+  type: string;
+  start: number;
+  end: number;
+}
+
 export interface AnalyzeResponse {
   deid_redactions: number;
+  deid_text: string;
+  sections: Section[];
+  phi_spans: PhiSpan[];
   entities: Entity[];
   gaps: HccGap[];
   risk_score: number;
