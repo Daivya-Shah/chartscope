@@ -1,26 +1,44 @@
-# Python
-__pycache__/
+# Python — bytecode and caches
+**/__pycache__/
 *.py[cod]
+*.pyc
 *$py.class
 *.so
+*.npy
 .Python
-.venv/
-venv/
-env/
-*.egg-info/
-dist/
-build/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .coverage
 htmlcov/
+*.egg-info/
+dist/
+build/
 
-# Node
-node_modules/
+# Virtual environments
+backend/.venv/
+.venv/
+venv/
+env/
+
+# ML model weights / training checkpoints (not backend/app/models/ Python package)
+backend/models/
+
+# Node / frontend build
+frontend/node_modules/
 frontend/dist/
 frontend/tsconfig.tsbuildinfo
+node_modules/
 *.local
+
+# HuggingFace / PyTorch download caches
+.cache/
+**/.cache/
+.huggingface/
+**/.huggingface/
+**/huggingface/hub/
+**/torch/hub/
+**/transformers_cache/
 
 # Environment
 .env
@@ -45,8 +63,8 @@ npm-debug.log*
 # Docker
 .docker/
 
-# Fine-tuned model weights (metrics JSON in backend/eval/ is kept)
-backend/models/
+# Stray local data copies (canonical paths stay tracked below)
+/data/
 
 # ---------------------------------------------------------------------------
 # RESTRICTED CLINICAL DATA — NEVER COMMIT
