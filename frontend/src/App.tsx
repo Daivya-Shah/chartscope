@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import AppShell from "./components/AppShell";
 import NoteInput from "./components/NoteInput";
@@ -34,10 +35,15 @@ export default function App() {
       setResult(response);
       setActiveTab("gaps");
     } catch (err: unknown) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Analysis failed. Is the backend running?";
+      let message = "Analysis failed. Is the backend running?";
+      if (axios.isAxiosError(err)) {
+        message =
+          (err.response?.data as { detail?: string })?.detail ??
+          err.message ??
+          message;
+      } else if (err instanceof Error) {
+        message = err.message;
+      }
       setError(message);
     } finally {
       setLoading(false);
@@ -77,6 +83,7 @@ export default function App() {
             onClaimedCodesChange={setClaimedCodes}
             onReanalyze={runAnalyze}
             loading={loading}
+            error={error}
           />
         </div>
       </div>

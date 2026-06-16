@@ -1,5 +1,6 @@
 import { Shield, Stethoscope } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { DEFAULT_ENTITY_COLOR, ENTITY_COLORS } from "../lib/constants";
 import {
   buildHighlightSegments,
@@ -13,12 +14,42 @@ interface EntityHighlighterProps {
   result: AnalyzeResponse | null;
 }
 
-function EntityPopover({ entity }: { entity: Entity }) {
+function EntityPopover({
+  entity,
+  anchorRect,
+}: {
+  entity: Entity;
+  anchorRect: DOMRect;
+}) {
   const tags = entityAssertionTags(entity);
   const linked = linkedCodeLabel(entity);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
 
-  return (
-    <div className="absolute left-0 top-full z-20 mt-1 w-72 rounded-lg border border-clinical-200 bg-white p-3 text-xs shadow-lg">
+  useEffect(() => {
+    const el = popoverRef.current;
+    const width = el?.offsetWidth ?? 288;
+    const height = el?.offsetHeight ?? 160;
+    const margin = 8;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    let top = anchorRect.bottom + margin;
+    let left = anchorRect.left;
+
+    if (left + width > vw - margin) left = vw - width - margin;
+    if (left < margin) left = margin;
+    if (top + height > vh - margin) top = anchorRect.top - height - margin;
+
+    setPos({ top, left });
+  }, [anchorRect]);
+
+  return createPortal(
+    <div
+      ref={popoverRef}
+      className="pointer-events-none fixed z-[100] w-72 rounded-lg border border-clinical-200 bg-white p-3 text-xs shadow-xl"
+      style={{ top: pos.top, left: pos.left }}
+    >
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="font-semibold text-clinical-900">{entity.label}</span>
         {entity.section && (
@@ -40,7 +71,7 @@ function EntityPopover({ entity }: { entity: Entity }) {
           ))}
         </div>
       )}
-      {linked && (
+      {linked ? (
         <div className="border-t border-clinical-100 pt-2 text-clinical-600">
           <span className="font-medium text-clinical-800">Linked: </span>
           {linked}
@@ -50,16 +81,27 @@ function EntityPopover({ entity }: { entity: Entity }) {
             </span>
           )}
         </div>
-      )}
-      {!linked && (
+      ) : (
         <p className="border-t border-clinical-100 pt-2 text-clinical-400">No terminology link</p>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }
 
 export default function EntityHighlighter({ result }: EntityHighlighterProps) {
   const [activeEntity, setActiveEntity] = useState<Entity | null>(null);
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+
+  const showPopover = useCallback((entity: Entity, target: HTMLElement) => {
+    setActiveEntity(entity);
+    setAnchorRect(target.getBoundingClientRect());
+  }, []);
+
+  const hidePopover = useCallback(() => {
+    setActiveEntity(null);
+    setAnchorRect(null);
+  }, []);
 
   if (!result) {
     return (
@@ -84,7 +126,7 @@ export default function EntityHighlighter({ result }: EntityHighlighterProps) {
         </span>
       </div>
 
-      <div className="rounded-lg border border-clinical-200 bg-white p-4">
+      <div className="overflow-x-auto rounded-lg border border-clinical-200 bg-white p-4">
         <p className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-clinical-800">
           {segments.map((seg, idx) => {
             if (!seg.entity) {
@@ -98,32 +140,37 @@ export default function EntityHighlighter({ result }: EntityHighlighterProps) {
               activeEntity?.end_char === seg.entity.end_char;
 
             return (
-              <span key={idx} className="relative inline">
-                <mark
-                  role="button"
-                  tabIndex={0}
-                  onMouseEnter={() => setActiveEntity(seg.entity!)}
-                  onMouseLeave={() => setActiveEntity(null)}
-                  onClick={() =>
-                    setActiveEntity(isActive ? null : seg.entity!)
-                  }
-                  className={`cursor-pointer rounded px-0.5 ring-1 ring-inset ${
-                    muted ? colors.muted : `${colors.bg} ${colors.text} ${colors.ring}`
-                  } ${isActive ? "ring-2" : ""}`}
-                >
-                  {seg.text}
-                  {tags.length > 0 && (
-                    <sup className="ml-0.5 text-[9px] font-medium text-amber-600">
-                      {tags[0]}
-                    </sup>
-                  )}
-                </mark>
-                {isActive && <EntityPopover entity={seg.entity} />}
-              </span>
+              <mark
+                key={idx}
+                role="button"
+                tabIndex={0}
+                onMouseEnter={(e) => showPopover(seg.entity!, e.currentTarget)}
+                onMouseLeave={hidePopover}
+                onFocus={(e) => showPopover(seg.entity!, e.currentTarget)}
+                onBlur={hidePopover}
+                onClick={(e) => {
+                  if (isActive) hidePopover();
+                  else showPopover(seg.entity!, e.currentTarget);
+                }}
+                className={`cursor-pointer rounded px-0.5 ring-1 ring-inset ${
+                  muted ? colors.muted : `${colors.bg} ${colors.text} ${colors.ring}`
+                } ${isActive ? "ring-2" : ""}`}
+              >
+                {seg.text}
+                {tags.length > 0 && (
+                  <sup className="ml-0.5 text-[9px] font-medium text-amber-600">
+                    {tags[0]}
+                  </sup>
+                )}
+              </mark>
             );
           })}
         </p>
       </div>
+
+      {activeEntity && anchorRect && (
+        <EntityPopover entity={activeEntity} anchorRect={anchorRect} />
+      )}
 
       <div>
         <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-clinical-500">
