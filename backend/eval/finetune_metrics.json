@@ -1,18 +1,37 @@
 {
   "model": "microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract",
-  "output_dir": "C:\\Users\\Daivy\\Downloads\\Files\\Projects\\chartscope\\backend\\models\\finetuned_ner",
-  "dataset": "ncbi/ncbi_disease@refs/convert/parquet",
-  "epochs": 1,
-  "smoke": true,
-  "precision": 0.6166868198307134,
-  "recall": 0.53125,
-  "f1": 0.5707890318970341,
+  "dataset": "ncbi_disease",
+  "epochs": 3,
+  "smoke": false,
+  "precision": 0.8424,
+  "recall": 0.8906,
+  "f1": 0.8658,
   "per_entity": {
     "Disease": {
-      "precision": 0.6166868198307134,
-      "recall": 0.53125,
-      "f1-score": 0.5707890318970341,
-      "support": 960
+      "precision": 0.8424,
+      "recall": 0.8906,
+      "f1": 0.8658
     }
+  },
+  "baseline": {
+    "model": "d4data/biomedical-ner-all",
+    "dataset": "ncbi/ncbi_disease@refs/convert/parquet",
+    "split": "test",
+    "precision": 0.5119266055045871,
+    "recall": 0.290625,
+    "f1": 0.3707641196013289,
+    "per_entity": {
+      "Disease": {
+        "precision": 0.5119266055045871,
+        "recall": 0.290625,
+        "f1-score": 0.3707641196013289,
+        "support": 960
+      }
+    }
+  },
+  "comparison": {
+    "finetuned_f1": 0.8658,
+    "baseline_f1": 0.3708,
+    "finetuned_advantage": 0.4950
   }
 }

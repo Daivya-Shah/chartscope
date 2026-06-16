@@ -235,5 +235,5 @@ def spans_to_iob(
             continue
         iob[covered[0]] = f"B-{entity}"
         for idx in covered[1:]:
-            iob[i] = f"I-{entity}"
+            iob[idx] = f"I-{entity}"
     return iob
