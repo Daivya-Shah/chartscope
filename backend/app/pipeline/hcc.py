@@ -18,7 +18,25 @@ FALLBACK_MODELS = [
 DEFAULT_AGE = 70
 DEFAULT_SEX = "M"
 LINK_THRESHOLD = float(os.getenv("CHARTSCOPE_LINK_THRESHOLD", "0.55"))
+SYMPTOM_FRAGMENT_HIGH_CONFIDENCE = 0.85
 PREFERRED_SECTIONS = {"ASSESSMENT", "PLAN", "ASSESSMENT AND PLAN"}
+
+VAGUE_SYMPTOM_TERMS = frozenset(
+    {
+        "numbness",
+        "pain",
+        "weakness",
+        "fatigue",
+        "dyspnea",
+        "cough",
+        "headache",
+        "nausea",
+        "vomiting",
+        "fever",
+        "edema",
+        "malaise",
+    }
+)
 
 _hcc_engine: Any | None = None
 _icd_hcc_cache: dict[tuple[str, int, str], list[dict[str, str]]] = {}
@@ -160,6 +178,84 @@ def _section_priority(section: str | None) -> int:
     return 1
 
 
+def _is_r_chapter_code(code: str) -> bool:
+    return _normalize_icd10(code).startswith("R")
+
+
+def _symptom_tokens(text: str) -> list[str]:
+    return re.findall(r"[a-z]+", text.strip().lower())
+
+
+def _is_vague_symptom_fragment(entity: dict[str, Any]) -> bool:
+    tokens = _symptom_tokens(str(entity.get("text", "")))
+    if not tokens:
+        return False
+    if len(tokens) == 1:
+        return tokens[0] in VAGUE_SYMPTOM_TERMS
+    if len(tokens) == 2 and all(token in VAGUE_SYMPTOM_TERMS for token in tokens):
+        return True
+    return False
+
+
+def _exclude_vague_r_symptom(entity: dict[str, Any]) -> bool:
+    """Drop generic symptom fragments that mislink to R-chapter sign/symptom codes."""
+    icd10 = entity.get("icd10")
+    if not icd10 or not _is_r_chapter_code(str(icd10)):
+        return False
+    if not _is_vague_symptom_fragment(entity):
+        return False
+    tokens = _symptom_tokens(str(entity.get("text", "")))
+    link_score = float(entity.get("link_score") or 0.0)
+    if len(tokens) == 1:
+        return True
+    return link_score < SYMPTOM_FRAGMENT_HIGH_CONFIDENCE
+
+
+def select_key_problems(
+    active_problems: list[dict[str, Any]],
+    link_threshold: float = LINK_THRESHOLD,
+) -> list[dict[str, Any]]:
+    """Return deduped, high-confidence active problems for HCC + FHIR export."""
+    candidates: dict[str, dict[str, Any]] = {}
+
+    for ent in active_problems:
+        if ent.get("label") != "PROBLEM" or not ent.get("is_active", False):
+            continue
+        icd10 = ent.get("icd10")
+        link_score = ent.get("link_score")
+        if not icd10 or link_score is None or float(link_score) < link_threshold:
+            continue
+        if _exclude_vague_r_symptom(ent):
+            continue
+
+        code = _normalize_icd10(str(icd10))
+        span_len = int(ent["end_char"]) - int(ent["start_char"])
+        rank = (_section_priority(ent.get("section")), float(link_score), span_len)
+        existing = candidates.get(code)
+        if existing is None or rank > existing["_rank"]:
+            candidates[code] = {**ent, "_rank": rank}
+
+    ranked = sorted(
+        candidates.values(),
+        key=lambda item: (-item["_rank"][0], -item["_rank"][1], -item["_rank"][2]),
+    )
+    return [{k: v for k, v in item.items() if k != "_rank"} for item in ranked]
+
+
+def format_key_problems(problems: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """API-facing summary of selected key problems."""
+    return [
+        {
+            "text": str(item["text"]),
+            "icd10": _normalize_icd10(str(item["icd10"])),
+            "icd10_desc": item.get("icd10_desc"),
+            "section": item.get("section"),
+            "score": float(item.get("link_score") or 0.0),
+        }
+        for item in problems
+    ]
+
+
 def _evidence_section(evidence: str) -> str:
     if "(" in evidence and evidence.endswith(")"):
         return evidence.rsplit("(", 1)[1].rstrip(")")
@@ -197,41 +293,19 @@ def _recommendation_unsupported() -> str:
     return "Validate documentation or remove unsupported code."
 
 
-def _build_evidenced_codes(
-    active_problem_entities: list[dict[str, Any]],
-    link_threshold: float = LINK_THRESHOLD,
-) -> dict[str, dict[str, Any]]:
-    """Select evidenced ICD-10 codes from linked active problems."""
-    candidates: dict[str, dict[str, Any]] = {}
-
-    for ent in active_problem_entities:
-        if ent.get("label") != "PROBLEM" or not ent.get("is_active", False):
-            continue
-        icd10 = ent.get("icd10")
-        link_score = ent.get("link_score")
-        if not icd10 or link_score is None or float(link_score) < link_threshold:
-            continue
-
-        code = _normalize_icd10(str(icd10))
-        span_len = int(ent["end_char"]) - int(ent["start_char"])
-        section = ent.get("section")
-        rank = (
-            _section_priority(section),
-            float(link_score),
-            span_len,
-        )
-        existing = candidates.get(code)
-        if existing is None or rank > existing["rank"]:
-            section_label = section or "note"
-            candidates[code] = {
-                "icd10": code,
-                "icd10_desc": ent.get("icd10_desc"),
-                "link_score": float(link_score),
-                "evidence": f'{ent["text"]} ({section_label})',
-                "rank": rank,
-            }
-
-    return candidates
+def _build_evidenced_codes(key_problems: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Map selected key problems to evidenced ICD-10 payloads."""
+    evidenced: dict[str, dict[str, Any]] = {}
+    for ent in key_problems:
+        code = _normalize_icd10(str(ent["icd10"]))
+        section_label = ent.get("section") or "note"
+        evidenced[code] = {
+            "icd10": code,
+            "icd10_desc": ent.get("icd10_desc"),
+            "link_score": float(ent.get("link_score") or 0.0),
+            "evidence": f'{ent["text"]} ({section_label})',
+        }
+    return evidenced
 
 
 def _hcc_set_from_codes(codes: list[str], age: int, sex: str) -> tuple[set[str], dict[str, str]]:
@@ -320,7 +394,8 @@ def detect_gaps(
     sex: str,
 ) -> dict[str, Any]:
     """Compare note-evidenced HCCs against claimed codes and compute RAF impact."""
-    evidenced = _build_evidenced_codes(active_problem_entities)
+    key_problems = select_key_problems(active_problem_entities)
+    evidenced = _build_evidenced_codes(key_problems)
     evidenced_codes = sorted(evidenced.keys())
     normalized_claimed = [_normalize_icd10(c) for c in claimed_codes if c and c.strip()]
 
@@ -407,6 +482,7 @@ def detect_gaps(
 
     return {
         "gaps": gaps,
+        "key_problems": format_key_problems(key_problems),
         "risk_score_current": round(risk_current, 4),
         "risk_score_potential": round(risk_potential, 4),
         "risk_score_delta": risk_delta,

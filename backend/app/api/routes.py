@@ -7,6 +7,7 @@ from app.models.schemas import (
     Entity,
     EvalResult,
     ExampleNote,
+    KeyProblem,
     PatientDemographics,
     PhiSpan,
     RandomNote,
@@ -52,7 +53,7 @@ async def analyze_note(request: AnalyzeRequest) -> AnalyzeResponse:
     vitals = [e for e in linked_entities if e.get("label") == "VITAL"]
     fhir_bundle, fhir_valid, fhir_errors = to_fhir_bundle(
         demographics=gap_result["demographics"],
-        active_problems=[e for e in active_problems if e.get("icd10")],
+        key_problems=gap_result["key_problems"],
         medications=medications,
         gaps=gap_result["gaps"],
         risk={
@@ -72,6 +73,7 @@ async def analyze_note(request: AnalyzeRequest) -> AnalyzeResponse:
             for s in sections_raw
         ],
         entities=[Entity(**ent) for ent in linked_entities],
+        key_problems=[KeyProblem(**item) for item in gap_result["key_problems"]],
         gaps=gap_result["gaps"],
         risk_score=gap_result["risk_score_current"],
         risk_score_current=gap_result["risk_score_current"],

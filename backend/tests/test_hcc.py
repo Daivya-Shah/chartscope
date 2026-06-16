@@ -3,7 +3,7 @@
 from app.pipeline.context import apply_context, filter_active_problems
 from app.pipeline.deid import deidentify
 from app.pipeline.examples import EXAMPLE_NOTES
-from app.pipeline.hcc import demographics_from_text, detect_gaps
+from app.pipeline.hcc import demographics_from_text, detect_gaps, select_key_problems
 from app.pipeline.ingest import clean_text
 from app.pipeline.linking import link_entities
 from app.pipeline.ner import extract_entities
@@ -95,3 +95,46 @@ def test_low_link_score_excluded_from_evidence():
     result = detect_gaps(active_entities, claimed_codes=["I10"], age=70, sex="M")
     suspected = [g for g in result["gaps"] if g["status"] == "suspected"]
     assert not any(g["icd10"] == "I50.22" for g in suspected)
+
+
+def test_select_key_problems_dedupes_and_drops_vague_r_symptoms():
+    active = [
+        {
+            "label": "PROBLEM",
+            "text": "numbness",
+            "is_active": True,
+            "icd10": "R53.1",
+            "icd10_desc": "Weakness",
+            "link_score": 0.72,
+            "section": "HPI",
+            "start_char": 0,
+            "end_char": 8,
+        },
+        {
+            "label": "PROBLEM",
+            "text": "type 2 diabetes with chronic kidney disease",
+            "is_active": True,
+            "icd10": "E11.22",
+            "icd10_desc": "Type 2 diabetes mellitus with diabetic chronic kidney disease",
+            "link_score": 0.91,
+            "section": "ASSESSMENT",
+            "start_char": 10,
+            "end_char": 53,
+        },
+        {
+            "label": "PROBLEM",
+            "text": "diabetes with CKD",
+            "is_active": True,
+            "icd10": "E11.22",
+            "icd10_desc": "Type 2 diabetes mellitus with diabetic chronic kidney disease",
+            "link_score": 0.88,
+            "section": "PLAN",
+            "start_char": 60,
+            "end_char": 77,
+        },
+    ]
+    selected = select_key_problems(active)
+    codes = [item["icd10"] for item in selected]
+    assert codes == ["E11.22"]
+    assert "R53.1" not in codes
+    assert selected[0]["section"] == "ASSESSMENT"

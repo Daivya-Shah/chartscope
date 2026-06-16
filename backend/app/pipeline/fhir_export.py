@@ -279,7 +279,7 @@ def _validate_bundle(bundle_dict: dict[str, Any], models: dict[str, Any]) -> tup
 
 def to_fhir_bundle(
     demographics: dict[str, Any],
-    active_problems: list[dict[str, Any]],
+    key_problems: list[dict[str, Any]],
     medications: list[dict[str, Any]],
     gaps: list[dict[str, Any]],
     risk: dict[str, Any],
@@ -295,16 +295,11 @@ def to_fhir_bundle(
     patient = _build_patient(demographics, models)
     entries.append(BundleEntry(resource=patient))
 
-    seen_icd10: set[str] = set()
     condition_idx = 0
-    for entity in active_problems:
+    for entity in key_problems:
         icd10 = entity.get("icd10")
         if not icd10:
             continue
-        code = str(icd10).upper()
-        if code in seen_icd10:
-            continue
-        seen_icd10.add(code)
         condition_idx += 1
         entries.append(BundleEntry(resource=_build_condition(entity, models, condition_idx)))
 

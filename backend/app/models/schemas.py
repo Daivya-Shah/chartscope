@@ -37,6 +37,14 @@ class HccGap(BaseModel):
     recommendation: str | None = None
 
 
+class KeyProblem(BaseModel):
+    text: str
+    icd10: str
+    icd10_desc: str | None = None
+    section: str | None = None
+    score: float
+
+
 class PatientDemographics(BaseModel):
     age: int
     sex: str
@@ -60,6 +68,7 @@ class AnalyzeResponse(BaseModel):
     sections: list[Section]
     phi_spans: list[PhiSpan]
     entities: list[Entity] = Field(default_factory=list)
+    key_problems: list[KeyProblem] = Field(default_factory=list)
     gaps: list[HccGap] = Field(default_factory=list)
     risk_score: float = 0.0
     risk_score_current: float = 0.0

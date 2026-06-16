@@ -22,7 +22,7 @@ def _diabetes_analysis() -> dict:
     meds = [e for e in entities if e.get("label") == "MEDICATION" and e.get("rxnorm")]
     bundle, valid, errors = to_fhir_bundle(
         demographics=gaps["demographics"],
-        active_problems=[e for e in active if e.get("icd10")],
+        key_problems=gaps["key_problems"],
         medications=meds,
         gaps=gaps["gaps"],
         risk={
@@ -31,7 +31,12 @@ def _diabetes_analysis() -> dict:
             "risk_score_delta": gaps["risk_score_delta"],
         },
     )
-    return {"bundle": bundle, "valid": valid, "errors": errors}
+    return {
+        "bundle": bundle,
+        "valid": valid,
+        "errors": errors,
+        "key_problems": gaps["key_problems"],
+    }
 
 
 def _resources_by_type(bundle: dict, resource_type: str) -> list[dict]:
@@ -39,6 +44,15 @@ def _resources_by_type(bundle: dict, resource_type: str) -> list[dict]:
         entry["resource"]
         for entry in bundle.get("entry", [])
         if entry.get("resource", {}).get("resourceType") == resource_type
+    ]
+
+
+def _condition_icd_codes(conditions: list[dict]) -> list[str]:
+    return [
+        coding["code"]
+        for cond in conditions
+        for coding in cond.get("code", {}).get("coding", [])
+        if coding.get("system") == "http://hl7.org/fhir/sid/icd-10-cm"
     ]
 
 
@@ -57,18 +71,26 @@ def test_diabetes_bundle_validates_and_contains_core_resources():
 
     conditions = _resources_by_type(bundle, "Condition")
     assert conditions, "Expected at least one Condition"
-    icd_codes = [
-        coding["code"]
-        for cond in conditions
-        for coding in cond.get("code", {}).get("coding", [])
-        if coding.get("system") == "http://hl7.org/fhir/sid/icd-10-cm"
-    ]
+    icd_codes = _condition_icd_codes(conditions)
     assert any(code.startswith("E11") for code in icd_codes), icd_codes
+    assert "R53.1" not in icd_codes, icd_codes
+    assert {"E11.22", "E11.42", "E11.9"}.intersection(set(icd_codes)), icd_codes
 
     risks = _resources_by_type(bundle, "RiskAssessment")
     assert risks, "Expected RiskAssessment"
     predictions = risks[0].get("prediction") or []
     assert any("HCC 37" in (p.get("outcome", {}).get("text") or "") for p in predictions)
+
+
+def test_diabetes_key_problems_deduped_and_filtered():
+    result = _diabetes_analysis()
+    key_problems = result["key_problems"]
+    icd_codes = [item["icd10"] for item in key_problems]
+
+    assert len(icd_codes) == len(set(icd_codes))
+    assert "R53.1" not in icd_codes
+    assert any(code.startswith("E11") for code in icd_codes)
+    assert not any(item["text"].lower() == "numbness" for item in key_problems)
 
 
 def test_diabetes_bundle_round_trips_through_fhir_resources():

@@ -51,12 +51,21 @@ export interface PatientDemographics {
   sex: string;
 }
 
+export interface KeyProblem {
+  text: string;
+  icd10: string;
+  icd10_desc?: string | null;
+  section: string | null;
+  score: number;
+}
+
 export interface AnalyzeResponse {
   deid_redactions: number;
   deid_text: string;
   sections: Section[];
   phi_spans: PhiSpan[];
   entities: Entity[];
+  key_problems: KeyProblem[];
   gaps: HccGap[];
   risk_score: number;
   risk_score_current: number;
