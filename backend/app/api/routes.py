@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
 from fastapi import APIRouter, HTTPException, Query
 
 from app.data.loaders import get_random_note, list_specialties
@@ -5,7 +10,6 @@ from app.models.schemas import (
     AnalyzeRequest,
     AnalyzeResponse,
     Entity,
-    EvalResult,
     ExampleNote,
     KeyProblem,
     PatientDemographics,
@@ -108,23 +112,10 @@ async def get_mtsample_specialties() -> list[SpecialtyCount]:
     return [SpecialtyCount(**row) for row in rows]
 
 
-# TODO (build step: eval): run eval_harness.py metrics against gold-standard fixtures
-@router.get("/eval", response_model=list[EvalResult])
-async def get_eval_results() -> list[EvalResult]:
-    return [
-        EvalResult(
-            metric="ner_f1",
-            value=0.0,
-            description="Named entity recognition F1 (stub — pipeline not yet implemented)",
-        ),
-        EvalResult(
-            metric="hcc_gap_precision",
-            value=0.0,
-            description="HCC gap detection precision (stub)",
-        ),
-        EvalResult(
-            metric="deid_recall",
-            value=0.0,
-            description="PHI redaction recall (stub)",
-        ),
-    ]
+# Fine-tune / baseline metrics for the Evaluation tab.
+@router.get("/eval")
+async def get_eval_metrics() -> dict:
+    metrics_path = Path(__file__).resolve().parents[2] / "eval" / "finetune_metrics.json"
+    if not metrics_path.exists():
+        raise HTTPException(status_code=404, detail="finetune_metrics.json not found")
+    return json.loads(metrics_path.read_text(encoding="utf-8"))

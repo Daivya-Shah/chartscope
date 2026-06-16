@@ -8,46 +8,47 @@ interface AppShellProps {
 
 export default function AppShell({ children, backendStatus }: AppShellProps) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b border-clinical-200/80 bg-white/90 backdrop-blur-sm sticky top-0 z-50">
+    <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-50 border-b border-clinical-200/80 bg-white/90 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
+          <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 py-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-clinical-600 text-white shadow-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-clinical-500 to-clinical-700 text-white shadow-sm">
                 <Activity className="h-5 w-5" strokeWidth={2.25} />
               </div>
               <div>
                 <h1 className="font-display text-xl font-semibold tracking-tight text-clinical-900">
                   ChartScope
                 </h1>
-                <p className="text-xs text-clinical-500 -mt-0.5">
-                  Clinical NLP &amp; HCC Intelligence
+                <p className="-mt-0.5 max-w-md text-xs leading-snug text-clinical-500">
+                  Clinical NLP for Risk-Adjustment Gap Detection &amp; FHIR Upcycling
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-sage-50 px-3 py-1 text-xs font-medium text-sage-700 ring-1 ring-sage-200">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                Synthetic / public data only — HIPAA-safe
+            <div className="flex items-center gap-3 sm:gap-4">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-sage-50 px-3 py-1.5 text-xs font-medium text-sage-700 ring-1 ring-sage-200">
+                <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+                <span className="hidden sm:inline">Synthetic / public data only — HIPAA-safe</span>
+                <span className="sm:hidden">HIPAA-safe demo</span>
               </span>
 
               <div className="flex items-center gap-2 text-sm">
                 <span
-                  className={`h-2 w-2 rounded-full ${
+                  className={`h-2.5 w-2.5 rounded-full ${
                     backendStatus === "connected"
-                      ? "bg-emerald-500"
+                      ? "bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.25)]"
                       : backendStatus === "checking"
-                        ? "bg-amber-400 animate-pulse"
+                        ? "animate-pulse bg-amber-400"
                         : "bg-red-500"
                   }`}
                 />
-                <span className="text-clinical-600">
+                <span className="font-medium text-clinical-700">
                   {backendStatus === "connected"
-                    ? "Backend connected"
+                    ? "Connected"
                     : backendStatus === "checking"
-                      ? "Checking backend…"
-                      : "Backend unreachable"}
+                      ? "Checking…"
+                      : "Unreachable"}
                 </span>
               </div>
             </div>

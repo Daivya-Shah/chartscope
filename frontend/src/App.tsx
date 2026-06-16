@@ -1,22 +1,48 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AppShell from "./components/AppShell";
-import EntityHighlighter from "./components/EntityHighlighter";
-import EvalDashboard from "./components/EvalDashboard";
-import FhirViewer from "./components/FhirViewer";
-import GapsPanel from "./components/GapsPanel";
 import NoteInput from "./components/NoteInput";
-import { getHealth } from "./lib/api";
+import ResultsTabs, { type ResultsTab } from "./components/ResultsTabs";
+import { analyze, getHealth, parseClaimedCodes } from "./lib/api";
+import type { AnalyzeResponse } from "./types/api";
 
 export default function App() {
   const [backendStatus, setBackendStatus] = useState<
     "connected" | "unreachable" | "checking"
   >("checking");
+  const [noteText, setNoteText] = useState("");
+  const [claimedCodes, setClaimedCodes] = useState("");
+  const [result, setResult] = useState<AnalyzeResponse | null>(null);
+  const [activeTab, setActiveTab] = useState<ResultsTab>("extraction");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getHealth()
       .then(() => setBackendStatus("connected"))
       .catch(() => setBackendStatus("unreachable"));
   }, []);
+
+  const runAnalyze = useCallback(async () => {
+    if (!noteText.trim()) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await analyze({
+        note_text: noteText,
+        claimed_codes: parseClaimedCodes(claimedCodes),
+      });
+      setResult(response);
+      setActiveTab("gaps");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Analysis failed. Is the backend running?";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [noteText, claimedCodes]);
 
   return (
     <AppShell backendStatus={backendStatus}>
@@ -25,20 +51,33 @@ export default function App() {
           Clinical Note Analyzer
         </h2>
         <p className="mt-1 max-w-2xl text-sm text-clinical-500">
-          De-identify, extract clinical entities, detect HCC coding gaps, and export
-          FHIR bundles — powered by a modular NLP pipeline.
+          De-identify, extract entities, detect HCC coding gaps, and prepare FHIR
+          bundles — powered by a modular clinical NLP pipeline.
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-6">
-          <NoteInput />
-          <EntityHighlighter />
+      <div className="grid gap-6 lg:grid-cols-5">
+        <div className="lg:col-span-2">
+          <NoteInput
+            noteText={noteText}
+            claimedCodes={claimedCodes}
+            onNoteTextChange={setNoteText}
+            onClaimedCodesChange={setClaimedCodes}
+            onAnalyze={runAnalyze}
+            loading={loading}
+            error={error}
+          />
         </div>
-        <div className="space-y-6">
-          <GapsPanel />
-          <FhirViewer />
-          <EvalDashboard />
+        <div className="lg:col-span-3">
+          <ResultsTabs
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            result={result}
+            claimedCodes={claimedCodes}
+            onClaimedCodesChange={setClaimedCodes}
+            onReanalyze={runAnalyze}
+            loading={loading}
+          />
         </div>
       </div>
     </AppShell>

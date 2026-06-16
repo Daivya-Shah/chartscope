@@ -2,8 +2,8 @@ import axios from "axios";
 import type {
   AnalyzeRequest,
   AnalyzeResponse,
-  EvalResult,
   ExampleNote,
+  FinetuneMetrics,
   HealthResponse,
   RandomNote,
   SpecialtyCount,
@@ -16,6 +16,8 @@ const client = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+let examplesCache: ExampleNote[] | null = null;
+
 export async function getHealth(): Promise<HealthResponse> {
   const { data } = await client.get<HealthResponse>("/health");
   return data;
@@ -27,7 +29,9 @@ export async function analyze(request: AnalyzeRequest): Promise<AnalyzeResponse>
 }
 
 export async function getExamples(): Promise<ExampleNote[]> {
+  if (examplesCache) return examplesCache;
   const { data } = await client.get<ExampleNote[]>("/examples");
+  examplesCache = data;
   return data;
 }
 
@@ -43,7 +47,14 @@ export async function getSpecialties(): Promise<SpecialtyCount[]> {
   return data;
 }
 
-export async function getEval(): Promise<EvalResult[]> {
-  const { data } = await client.get<EvalResult[]>("/eval");
+export async function getEval(): Promise<FinetuneMetrics> {
+  const { data } = await client.get<FinetuneMetrics>("/eval");
   return data;
+}
+
+export function parseClaimedCodes(raw: string): string[] {
+  return raw
+    .split(",")
+    .map((c) => c.trim().toUpperCase())
+    .filter(Boolean);
 }

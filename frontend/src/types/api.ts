@@ -98,6 +98,40 @@ export interface SpecialtyCount {
   count: number;
 }
 
+export interface FinetuneEntityMetrics {
+  precision: number;
+  recall: number;
+  f1?: number;
+  "f1-score"?: number;
+  support?: number;
+}
+
+export interface FinetuneMetrics {
+  model: string;
+  dataset: string;
+  epochs: number;
+  smoke: boolean;
+  precision: number;
+  recall: number;
+  f1: number;
+  per_entity: Record<string, FinetuneEntityMetrics>;
+  baseline?: {
+    model: string;
+    dataset: string;
+    split: string;
+    precision: number;
+    recall: number;
+    f1: number;
+    per_entity: Record<string, FinetuneEntityMetrics>;
+  };
+  comparison?: {
+    finetuned_f1: number;
+    baseline_f1: number;
+    finetuned_advantage: number;
+  };
+}
+
+/** @deprecated Legacy stub shape — use FinetuneMetrics from GET /eval */
 export interface EvalResult {
   metric: string;
   value: number;
