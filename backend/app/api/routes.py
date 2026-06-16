@@ -16,6 +16,7 @@ from app.models.schemas import (
 from app.pipeline.context import apply_context, filter_active_problems
 from app.pipeline.deid import deidentify
 from app.pipeline.examples import EXAMPLE_NOTES
+from app.pipeline.fhir_export import to_fhir_bundle
 from app.pipeline.hcc import demographics_from_text, detect_gaps
 from app.pipeline.ingest import build_clinical_pipeline, clean_text, detect_sections
 from app.pipeline.linking import link_entities
@@ -47,7 +48,20 @@ async def analyze_note(request: AnalyzeRequest) -> AnalyzeResponse:
         sex=str(demo["sex"]),
     )
 
-    # TODO (step 6): FHIR Bundle export from entities + gaps
+    medications = [e for e in linked_entities if e.get("label") == "MEDICATION" and e.get("rxnorm")]
+    vitals = [e for e in linked_entities if e.get("label") == "VITAL"]
+    fhir_bundle, fhir_valid, fhir_errors = to_fhir_bundle(
+        demographics=gap_result["demographics"],
+        active_problems=[e for e in active_problems if e.get("icd10")],
+        medications=medications,
+        gaps=gap_result["gaps"],
+        risk={
+            "risk_score_current": gap_result["risk_score_current"],
+            "risk_score_potential": gap_result["risk_score_potential"],
+            "risk_score_delta": gap_result["risk_score_delta"],
+        },
+        vitals=vitals,
+    )
 
     return AnalyzeResponse(
         deid_redactions=deid_result["redaction_count"],
@@ -64,7 +78,9 @@ async def analyze_note(request: AnalyzeRequest) -> AnalyzeResponse:
         risk_score_potential=gap_result["risk_score_potential"],
         risk_score_delta=gap_result["risk_score_delta"],
         demographics=PatientDemographics(**gap_result["demographics"]),
-        fhir_bundle={},
+        fhir_bundle=fhir_bundle,
+        fhir_valid=fhir_valid,
+        fhir_errors=fhir_errors,
     )
 
 

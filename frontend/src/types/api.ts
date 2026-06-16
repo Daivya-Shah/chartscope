@@ -64,6 +64,8 @@ export interface AnalyzeResponse {
   risk_score_delta: number;
   demographics: PatientDemographics;
   fhir_bundle: Record<string, unknown>;
+  fhir_valid: boolean;
+  fhir_errors: string[];
 }
 
 export interface ExampleNote {

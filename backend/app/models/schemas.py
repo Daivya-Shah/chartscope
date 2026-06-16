@@ -69,6 +69,8 @@ class AnalyzeResponse(BaseModel):
         default_factory=lambda: PatientDemographics(age=70, sex="M")
     )
     fhir_bundle: dict = Field(default_factory=dict)
+    fhir_valid: bool = False
+    fhir_errors: list[str] = Field(default_factory=list)
 
 
 class ExampleNote(BaseModel):
