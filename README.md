@@ -2,7 +2,7 @@
 
 Clinical NLP that de-identifies notes, extracts and links entities, flags CMS-HCC V28 coding gaps with RAF impact, and turns unstructured text into a validated FHIR R4 bundle.
 
-Portfolio and interview project. Synthetic and public-domain data only. Not for production clinical use.
+Uses synthetic and public-domain data only. Not intended for production clinical use.
 
 ---
 
@@ -12,7 +12,7 @@ Most of the useful clinical detail still lives in progress notes. Risk adjustmen
 
 When the note and the claim do not match, you get two bad outcomes: missed HCC capture on one side, unsupported codes sitting on the claim on the other. Payers and providers are also being pushed toward FHIR exchange under CMS-0057 and Da Vinci.
 
-ChartScope is a working reference implementation that closes that loop. Paste a note, optionally attach claimed ICD-10 codes, and get back linked entities, gap recommendations with RAF math, and a FHIR bundle you can inspect. Everything runs without credentialed datasets.
+ChartScope closes that loop. Paste a note, optionally attach claimed ICD-10 codes, and get back linked entities, gap recommendations with RAF math, and a FHIR bundle you can inspect. It runs on synthetic and public-domain data, no credentialed datasets required.
 
 For a longer walkthrough of the problem, pipeline design, and tradeoffs, see [ProjectDescription.md](ProjectDescription.md).
 
@@ -240,6 +240,6 @@ See [DATA_GOVERNANCE.md](DATA_GOVERNANCE.md) for the full policy.
 
 ## Disclaimer
 
-Interview and portfolio project. No warranty of coding accuracy or compliance. Always validate gap recommendations with qualified clinical and coding reviewers before acting on them.
+No warranty of coding accuracy or compliance. Gap recommendations are algorithmic outputs. Always validate them with qualified clinical and coding reviewers before acting on them.
 
 Not licensed for production clinical use.
