@@ -30,7 +30,7 @@ export default function AppShell({ children, backendStatus }: AppShellProps) {
               <span className="inline-flex items-center gap-1.5 rounded-full bg-sage-50 px-3 py-1.5 text-xs font-medium text-sage-700 ring-1 ring-sage-200">
                 <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
                 <span className="hidden sm:inline">Synthetic / public data only — HIPAA-safe</span>
-                <span className="sm:hidden">HIPAA-safe demo</span>
+                <span className="sm:hidden">HIPAA-safe</span>
               </span>
 
               <div className="flex items-center gap-2 text-sm">

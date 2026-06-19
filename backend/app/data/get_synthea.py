@@ -100,7 +100,7 @@ def _make_patient_bundle(
             {
                 "use": "official",
                 "family": f"SyntheticPatient{patient_index:03d}",
-                "given": ["ChartScope", "Demo"],
+                "given": ["ChartScope", "Synthetic"],
             }
         ],
     }

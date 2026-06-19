@@ -1,6 +1,6 @@
 # ChartScope
 
-ChartScope is a clinical NLP demo that reads unstructured clinical notes and turns them into structured, actionable output. Paste a note, optionally add the ICD-10 codes already on the claim, and the app will de-identify the text, pull out problems and medications, map them to standard codes, flag HCC coding gaps, and export a [FHIR](https://www.hl7.org/fhir/) bundle you can inspect in the UI.
+ChartScope is a clinical NLP application that reads unstructured clinical notes and turns them into structured, actionable output. Paste a note, optionally add the ICD-10 codes already on the claim, and the app will de-identify the text, pull out problems and medications, map them to standard codes, flag HCC coding gaps, and export a [FHIR](https://www.hl7.org/fhir/) bundle you can inspect in the UI.
 
 Built for risk adjustment workflows ([CMS-HCC V28](https://www.cms.gov/medicare/health-plans/medicareadvtgspecratestats/risk-adjustors)), but the pipeline is modular enough to reuse for other clinical NLP tasks.
 
@@ -101,7 +101,7 @@ Tests live in [`backend/tests/`](./backend/tests/) and cover de-ID, NER, linking
 |--------|------|-------------|
 | `GET` | `/api/health` | Health check |
 | `POST` | `/api/analyze` | Run the full pipeline |
-| `GET` | `/api/examples` | Curated synthetic demo notes |
+| `GET` | `/api/examples` | Curated synthetic example notes |
 | `GET` | `/api/mtsamples/random` | Random public-domain note (optional specialty filter) |
 | `GET` | `/api/mtsamples/specialties` | Available MTSamples specialties |
 | `GET` | `/api/eval` | NER fine-tune benchmark metrics |

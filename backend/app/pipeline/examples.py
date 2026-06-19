@@ -1,4 +1,4 @@
-"""Curated synthetic example notes for HCC gap-engine demos.
+"""Curated synthetic example notes for HCC gap analysis.
 
 All notes are fully synthetic — no real PHI. Each deliberately omits at least one
 ICD-10 code that is clearly documented in the note text.
