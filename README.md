@@ -14,8 +14,6 @@ When the note and the claim do not match, you get two bad outcomes: missed HCC c
 
 ChartScope closes that loop. Paste a note, optionally attach claimed ICD-10 codes, and get back linked entities, gap recommendations with RAF math, and a FHIR bundle you can inspect. It runs on synthetic and public-domain data, no credentialed datasets required.
 
-For a longer walkthrough of the problem, pipeline design, and tradeoffs, see [ProjectDescription.md](ProjectDescription.md).
-
 ---
 
 ## What you get
