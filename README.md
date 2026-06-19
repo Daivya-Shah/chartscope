@@ -1,8 +1,8 @@
 # ChartScope
 
-Clinical NLP that de-identifies notes, extracts and links entities, flags CMS-HCC V28 coding gaps with RAF impact, and turns unstructured text into a validated FHIR R4 bundle.
+ChartScope is a clinical NLP application that reads unstructured clinical notes and turns them into structured, actionable output. Paste a note, optionally add the ICD-10 codes already on the claim, and the app will de-identify the text, pull out problems and medications, map them to standard codes, flag HCC coding gaps, and export a FHIR bundle you can inspect in the UI.
 
-Paste a note, optionally add the ICD-10 codes already on the claim, and inspect extraction, gap analysis, and FHIR output in the web UI.
+Built for risk adjustment workflows (CMS-HCC V28), but the pipeline is modular enough to reuse for other clinical NLP tasks.
 
 ## What you get
 
