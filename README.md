@@ -1,31 +1,33 @@
 # ChartScope
 
-**Clinical NLP that de-identifies notes, extracts and links clinical entities, detects CMS-HCC V28 risk-adjustment coding gaps, and upcycles unstructured notes into FHIR R4.**
+Clinical NLP that de-identifies notes, extracts and links entities, flags CMS-HCC V28 coding gaps with RAF impact, and turns unstructured text into a validated FHIR R4 bundle.
 
-> Portfolio / interview project. Synthetic and public-domain data only. Not for production clinical use.
-
----
-
-## Why ChartScope
-
-Most clinical intelligence still lives in unstructured progress notes, while risk adjustment and quality programs run on coded claims. That gap creates missed HCC capture on one side and unsupported codes on the other. Payers and providers are also under pressure to exchange data as FHIR under CMS-0057 and Da Vinci.
-
-ChartScope is a working reference implementation that closes the loop: raw note text in, terminology-linked entities, HCC gap recommendations with RAF impact, and a validated FHIR bundle out. Reviewers can run the full pipeline without credentialed datasets.
-
-For a deeper walkthrough of the problem, pipeline, and design decisions, see **[ProjectDescription.md](ProjectDescription.md)**.
+Portfolio and interview project. Synthetic and public-domain data only. Not for production clinical use.
 
 ---
 
-## Features
+## Why this exists
+
+Most of the useful clinical detail still lives in progress notes. Risk adjustment and billing run on ICD-10 codes, which roll up into Hierarchical Condition Categories (HCCs) and a Risk Adjustment Factor (RAF) that drives Medicare Advantage reimbursement.
+
+When the note and the claim do not match, you get two bad outcomes: missed HCC capture on one side, unsupported codes sitting on the claim on the other. Payers and providers are also being pushed toward FHIR exchange under CMS-0057 and Da Vinci.
+
+ChartScope is a working reference implementation that closes that loop. Paste a note, optionally attach claimed ICD-10 codes, and get back linked entities, gap recommendations with RAF math, and a FHIR bundle you can inspect. Everything runs without credentialed datasets.
+
+For a longer walkthrough of the problem, pipeline design, and tradeoffs, see [ProjectDescription.md](ProjectDescription.md).
+
+---
+
+## What you get
 
 - **De-identification** with Microsoft Presidio (HIPAA Safe Harbor) before any downstream NLP
 - **Clinical NER** for problems, medications, procedures, tests, anatomy, and vitals
 - **Assertion detection** (negation, history, family history) via medspaCy ConText
 - **Terminology linking** to ICD-10-CM (SapBERT + lexical match) and RxNorm
 - **HCC V28 gap engine** with four statuses: suspected, confirmed, unsupported, superseded
-- **RAF scoring** (current, potential, delta) via hccinfhir
+- **RAF scoring** (current, potential, delta) via [hccinfhir](https://github.com/mimilabs/hccinfhir)
 - **FHIR R4 export** as a validated US Core / Da Vinci collection Bundle
-- **NER evaluation dashboard** comparing fine-tuned PubMedBERT vs. baseline on NCBI-Disease
+- **NER evaluation dashboard** comparing fine-tuned PubMedBERT vs. the live baseline on NCBI-Disease
 
 ---
 
@@ -57,17 +59,19 @@ flowchart TB
     API --> Pipeline
 ```
 
-**Monorepo:** `backend/` (FastAPI + pipeline) · `frontend/` (React UI) · `backend/eval/` (metrics) · `backend/training/` (NER fine-tune track)
+**Monorepo layout:** `backend/` (FastAPI + pipeline) · `frontend/` (React UI) · `backend/eval/` (metrics) · `backend/training/` (NER fine-tune track)
+
+De-identification runs first on purpose. PHI gets masked before NER, linking, or anything else touches the text.
 
 ---
 
-## Quick Start
+## Quick start
 
 ### Prerequisites
 
 - Python 3.11+
 - Node.js 20+
-- ~2 GB disk for first-run model downloads (SapBERT, NER, Presidio)
+- About 2 GB free disk for first-run model downloads (SapBERT, NER, Presidio)
 
 ### Backend
 
@@ -97,7 +101,7 @@ uvicorn app.main:app --host 127.0.0.1 --port 8001
 
 Health check: [http://127.0.0.1:8001/api/health](http://127.0.0.1:8001/api/health)
 
-Use port `8001` if `8000` is taken. Point the frontend proxy at the same port (below).
+Port 8001 is used here in case 8000 is already taken. Point the frontend proxy at the same port (below).
 
 ### Frontend
 
@@ -129,14 +133,16 @@ Backend on port 8000, frontend on 5173. No `.env.local` needed.
 
 ---
 
-## Demo Walkthrough
+## Try it in two minutes
 
 1. Open the app and load the **Heart Failure** example note.
 2. Click **Analyze**.
-3. Open the **Coding Gaps** tab (opens automatically).
-4. Confirm a **suspected** heart-failure HCC with a positive **RAF delta**.
+3. The **Coding Gaps** tab opens automatically.
+4. You should see a **suspected** heart failure HCC with a positive **RAF delta**.
 
-Other built-in examples demonstrate diabetes complications and COPD exacerbation with deliberately incomplete claimed codes.
+The other built-in examples cover diabetes with complications and a COPD exacerbation. Each one has claimed codes that deliberately under-represent what the note documents.
+
+You can also paste your own demo text or pull a random [MTSamples](https://www.mtsamples.com/) transcription from the note picker.
 
 ---
 
@@ -160,9 +166,18 @@ Other built-in examples demonstrate diabetes complications and COPD exacerbation
 }
 ```
 
+**Gap statuses:**
+
+| Status | Meaning |
+|--------|---------|
+| **suspected** | Documented in the note, missing from the claim |
+| **confirmed** | Documented and backed by a claimed code |
+| **unsupported** | On the claim, not found in the note |
+| **superseded** | Claim has a generic code; the note supports something more specific with a higher HCC |
+
 ---
 
-## Model Evaluation
+## Model evaluation
 
 Disease NER on the **NCBI-Disease test split** (entity-level strict F1):
 
@@ -171,7 +186,9 @@ Disease NER on the **NCBI-Disease test split** (entity-level strict F1):
 | Fine-tuned PubMedBERT (3 epochs) | 0.842 | 0.891 | **0.866** |
 | Baseline (`d4data/biomedical-ner-all`) | 0.512 | 0.291 | 0.371 |
 
-The baseline uses a broader multi-type label scheme and is penalized under strict single-type matching on NCBI-Disease. Task-specific fine-tuning is the point. Live inference still uses the baseline; see `backend/training/` for the fine-tune track and Colab notebook.
+The baseline uses a broader multi-type label scheme, so it gets penalized under strict single-type matching on NCBI-Disease. That is the point of the comparison: task-specific fine-tuning matters.
+
+Live inference still uses the baseline model. The fine-tune track lives in `backend/training/` with a Colab notebook if you want to reproduce the numbers.
 
 ---
 
@@ -186,17 +203,17 @@ pytest tests/ -v
 
 ---
 
-## Data Governance
+## Data governance
 
-The public app processes **synthetic or public-domain data only**: Synthea, MTSamples, curated synthetic examples, and user-pasted demo text.
+The public app only processes **synthetic or public-domain data**: Synthea bundles, MTSamples transcriptions, curated synthetic examples, and text you paste into the UI yourself.
 
-**Never** commit or deploy MIMIC, n2c2, or i2b2 data. Those credentialed corpora are for offline training only; only exported weights and eval metrics may enter the repo.
+Do not commit or deploy MIMIC, n2c2, or i2b2 data. Those credentialed corpora are for offline training only. Only exported weights and eval metrics belong in this repo.
 
-See **[DATA_GOVERNANCE.md](DATA_GOVERNANCE.md)** for the full policy.
+See [DATA_GOVERNANCE.md](DATA_GOVERNANCE.md) for the full policy.
 
 ---
 
-## Tech Stack
+## Tech stack
 
 | Layer | Technologies |
 |-------|-------------|
@@ -223,10 +240,6 @@ See **[DATA_GOVERNANCE.md](DATA_GOVERNANCE.md)** for the full policy.
 
 ## Disclaimer
 
-Interview / portfolio project. No warranty of coding accuracy or compliance. Always validate gap recommendations with qualified clinical and coding reviewers.
-
----
-
-## License
+Interview and portfolio project. No warranty of coding accuracy or compliance. Always validate gap recommendations with qualified clinical and coding reviewers before acting on them.
 
 Not licensed for production clinical use.
